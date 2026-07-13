@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIDI Footswitch Runbook</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root{
+  --bg:#131313;
+  --panel:#1c1c1e;
+  --panel-border:#2c2c2c;
+  --text:#ece7dc;
+  --text-dim:#948f84;
+  --cyan:#4fd1e8;
+  --teal:#3ddbc4;
+  --red:#e2483d;
+  --tape-black:#0c0c0c;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;background:var(--bg);
+  background-image:
+    radial-gradient(circle at 20% 0%, rgba(79,209,232,0.06), transparent 40%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+  color:var(--text);font-family:'Inter',sans-serif;padding-bottom:60px;
+}
+.wrap{max-width:600px;margin:0 auto;padding:0 14px;}
+
+.meterbar{position:sticky;top:0;z-index:10;background:rgba(19,19,19,0.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--panel-border);padding:10px 14px 12px;}
+.meterbar-inner{max-width:600px;margin:0 auto;}
+.meterbar-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+.meterbar-label{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1.5px;color:var(--text-dim);text-transform:uppercase;}
+.meterbar-pct{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan);font-weight:700;}
+.meter-track{display:flex;gap:3px;height:8px;}
+.meter-seg{flex:1;background:#2a2a2a;border-radius:1px;}
+.meter-seg.lit-1{background:var(--teal);}
+.meter-seg.lit-2{background:var(--cyan);}
+.meter-seg.lit-3{background:var(--red);}
+
+.hero{padding:22px 0 8px;}
+.hero h1{font-family:'Oswald',sans-serif;font-weight:700;font-size:24px;letter-spacing:0.5px;margin:0 0 4px;text-transform:uppercase;}
+.hero p{color:var(--text-dim);font-size:14px;margin:0;line-height:1.5;}
+
+details{margin-top:18px;}
+summary{list-style:none;cursor:pointer;user-select:none;}
+summary::-webkit-details-marker{display:none;}
+.tape{background:var(--tape-black);border:1px solid #2a2a2a;border-radius:3px;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;width:100%;position:relative;}
+.tape::before,.tape::after{content:'';position:absolute;top:50%;width:5px;height:5px;background:#3a3a3a;border-radius:50%;transform:translateY(-50%);}
+.tape::before{left:6px;}
+.tape::after{right:6px;}
+.tape-text{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12.5px;letter-spacing:2px;text-transform:uppercase;color:#fff;padding-left:10px;}
+.tape-caret{font-size:13px;color:var(--cyan);transition:transform 0.2s;margin-right:8px;}
+details[open] .tape-caret{transform:rotate(90deg);}
+.tape-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);margin-right:10px;}
+
+.section-body{padding:14px 2px 4px;}
+.section-note{background:rgba(79,209,232,0.08);border-left:2px solid var(--cyan);padding:10px 12px;border-radius:0 4px 4px 0;font-size:13px;color:var(--text);line-height:1.5;margin-bottom:14px;}
+.section-note b{color:var(--cyan);}
+.section-note.warn{background:rgba(226,72,61,0.08);border-left-color:var(--red);}
+.section-note.warn b{color:var(--red);}
+
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.chip{font-family:'JetBrains Mono',monospace;font-size:11px;background:#242426;border:1px solid var(--panel-border);border-radius:5px;padding:3px 8px;color:var(--text);}
+.chip.mute{color:var(--red);border-color:rgba(226,72,61,0.4);}
+.chip.neutral{color:var(--cyan);border-color:rgba(79,209,232,0.4);}
+
+.item{display:flex;align-items:flex-start;gap:11px;background:var(--panel);border:1px solid var(--panel-border);border-radius:8px;padding:12px 13px;margin-bottom:9px;}
+.item.checked{opacity:0.5;}
+.chk{flex-shrink:0;width:22px;height:22px;margin-top:1px;border-radius:5px;border:2px solid var(--text-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;}
+.chk.on{background:var(--cyan);border-color:var(--cyan);}
+.chk.on::after{content:'✓';color:#0c0c0c;font-weight:700;font-size:13px;}
+.item-body{flex:1;}
+.item-title{font-weight:600;font-size:14.5px;}
+.item-sub{color:var(--text-dim);font-size:12.5px;margin-top:3px;line-height:1.45;}
+.item-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);border:1px solid rgba(79,209,232,0.4);border-radius:3px;padding:1px 6px;margin-bottom:6px;letter-spacing:0.5px;}
+
+.footer-note{text-align:center;color:var(--text-dim);font-size:11.5px;margin-top:26px;line-height:1.6;}
+</style>
+</head>
+<body>
+
+<div class="meterbar">
+  <div class="meterbar-inner">
+    <div class="meterbar-top">
+      <span class="meterbar-label">MIDI Runbook Progress</span>
+      <span class="meterbar-pct" id="pctLabel">0%</span>
+    </div>
+    <div class="meter-track" id="meterTrack"></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <h1>MIDI Footswitch Runbook</h1>
+    <p>M-Vave Chocolate → LEKATO WIDI → XR18. One-time setup, then a simple mute test, then scene recall once you have scenes to recall.</p>
+  </div>
+
+  <!-- PHASE 1 -->
+  <details open data-phase="p1">
+    <summary><div class="tape"><span class="tape-caret">▸</span><span class="tape-text">Phase 1 · One-Time Setup</span><span class="tape-count" data-count="p1"></span></div></summary>
+    <div class="section-body">
+      <div class="section-note warn"><b>Easy to miss:</b> the XR18's MIDI DIN input does nothing to the mixer until you flip this on.</div>
+
+      <div class="item" data-id="p1-1"><div class="chk"></div><div class="item-body"><div class="item-title">Enable "DIN Rx" in Mixing Station's MIDI config</div><div class="item-sub">Without this, MIDI at the DIN port passes straight through to USB and never touches the mixer — the whole chain would look broken when it's really just this checkbox.</div></div></div>
+
+      <div class="item" data-id="p1-2"><div class="chk"></div><div class="item-body"><div class="item-title">Plug WIDI's MIDI A into the XR18</div><div class="item-sub">5-pin DIN cable from MIDI A into the XR18's MIDI IN jack.</div></div></div>
+
+      <div class="item" data-id="p1-3"><div class="chk"></div><div class="item-body"><div class="item-title">Keep MIDI B unplugged for now</div><div class="item-sub">MIDI B (the USB/computer half) shouldn't be powered on while pairing MIDI A to the Chocolate — it can grab the connection first.</div></div></div>
+    </div>
+  </details>
+
+  <!-- PHASE 2 -->
+  <details data-phase="p2">
+    <summary><div class="tape"><span class="tape-caret">▸</span><span class="tape-text">Phase 2 · Pair Chocolate to WIDI</span><span class="tape-count" data-count="p2"></span></div></summary>
+    <div class="section-body">
+      <div class="section-note">The Chocolate can only hold one Bluetooth MIDI connection at a time. If it's already linked to the iPad from a CubeSuite session, it won't be free to pair here.</div>
+
+      <div class="item" data-id="p2-1"><div class="chk"></div><div class="item-body"><div class="item-title">Disconnect Chocolate from the iPad</div><div class="item-sub">iPad Bluetooth settings → disconnect or forget the Chocolate/FootCtrl. Close CubeSuite too, just in case it's holding the link open.</div></div></div>
+
+      <div class="item" data-id="p2-2"><div class="chk"></div><div class="item-body"><div class="item-title">Power on MIDI A</div><div class="item-sub">Blue LED blinking = ready and waiting to pair.</div></div></div>
+
+      <div class="item" data-id="p2-3"><div class="chk"></div><div class="item-body"><div class="item-title">Power on the Chocolate</div><div class="item-sub">Give it 10-15 seconds to auto-pair with MIDI A — no button combo needed.</div></div></div>
+
+      <div class="item" data-id="p2-4"><div class="chk"></div><div class="item-body"><div class="item-title">Confirm solid LED on MIDI A</div><div class="item-sub">Blinking → solid usually signals a locked connection.</div></div></div>
+    </div>
+  </details>
+
+  <!-- PHASE 3 -->
+  <details data-phase="p3">
+    <summary><div class="tape"><span class="tape-caret">▸</span><span class="tape-text">Phase 3 · Main Mute Test</span><span class="tape-count" data-count="p3"></span></div></summary>
+    <div class="section-body">
+      <div class="section-note">No scenes needed for this one — it's the fastest way to confirm the whole chain works end to end.</div>
+
+      <div class="item" data-id="p3-1"><div class="chk"></div><div class="item-body"><span class="item-tag">CUBESUITE</span><div class="item-title">Program a footswitch: Main Mute</div>
+        <div class="chip-row">
+          <span class="chip neutral">Channel 2</span>
+          <span class="chip neutral">CC 31</span>
+          <span class="chip mute">Value 127 = mute on</span>
+          <span class="chip neutral">Value 0 = mute off</span>
+        </div>
+        <div class="item-sub" style="margin-top:6px;">If the Chocolate's toggle behavior isn't reliable for one switch, use two footswitches — one fixed at 127, one fixed at 0.</div>
+      </div></div>
+
+      <div class="item" data-id="p3-2"><div class="chk"></div><div class="item-body"><div class="item-title">Test standing next to the mixer</div><div class="item-sub">Tap the footswitch, watch the main fader/mute indicator in Mixing Station.</div></div></div>
+
+      <div class="item" data-id="p3-3"><div class="chk"></div><div class="item-body"><div class="item-title">Test at real stage distance</div><div class="item-sub">Walk to where you'd actually stand and confirm the Bluetooth link holds before trusting it live.</div></div></div>
+
+      <div class="item" data-id="p3-4"><div class="chk"></div><div class="item-body"><div class="item-title">Chain confirmed end to end</div><div class="item-sub">Chocolate → Bluetooth → WIDI → MIDI DIN → XR18, all verified working.</div></div></div>
+    </div>
+  </details>
+
+  <!-- PHASE 4 -->
+  <details data-phase="p4start">
+    <summary><div class="tape"><span class="tape-caret">▸</span><span class="tape-text">Phase 4 · Your First Two Scenes</span><span class="tape-count" data-count="p4start"></span></div></summary>
+    <div class="section-body">
+      <div class="section-note">Start simple — two scenes, not twenty-two. Expand into per-song FX profiles later once this split feels natural to use.</div>
+
+      <div class="item" data-id="p4start-1"><div class="chk"></div><div class="item-body"><span class="item-tag">SCENE 1 · PC 1</span><div class="item-title">Practice</div>
+        <div class="item-sub">Looser monitor balance built for hearing mistakes and locking in parts — not a polished show mix. Whatever you actually want dialed in for rehearsal.</div>
+      </div></div>
+
+      <div class="item" data-id="p4start-2"><div class="chk"></div><div class="item-body"><span class="item-tag">SCENE 2 · PC 2</span><div class="item-title">Gig</div>
+        <div class="item-sub">Your real show mix — full main output active, whatever FX profile suits most of the setlist as the default.</div>
+      </div></div>
+
+      <div class="item" data-id="p4start-3"><div class="chk"></div><div class="item-body"><div class="item-title">Save both scenes in Mixing Station</div><div class="item-sub">Confirm which PC number each one lands on before wiring up footswitches in the next phase.</div></div></div>
+
+      <div class="section-note" style="margin-top:14px;">Once Gig vs. Practice feels solid, the natural next step is splitting "Gig" further into the per-song FX profiles from earlier — Dry/Rock, Ballad, Anthemic — using <b>scoped snapshots</b> so they only touch FX sends, not your gain staging.</div>
+    </div>
+  </details>
+
+  <!-- PHASE 5 -->
+  <details data-phase="p4">
+    <summary><div class="tape"><span class="tape-caret">▸</span><span class="tape-text">Phase 5 · Assign to Footswitches</span><span class="tape-count" data-count="p4"></span></div></summary>
+    <div class="section-body">
+      <div class="section-note">Once Gig and Practice both exist as saved scenes, wire them up to the Chocolate.</div>
+
+      <div class="item" data-id="p4-1"><div class="chk"></div><div class="item-body"><span class="item-tag">CUBESUITE</span><div class="item-title">Program a footswitch: Scene Recall</div>
+        <div class="chip-row">
+          <span class="chip neutral">Channel 1</span>
+          <span class="chip neutral">Program Change</span>
+          <span class="chip neutral">PC number = scene number (1–64)</span>
+        </div>
+        <div class="item-sub" style="margin-top:6px;">E.g. footswitch A → PC 2 → recalls whatever's saved as Scene 2 in Mixing Station.</div>
+      </div></div>
+
+      <div class="item" data-id="p4-2"><div class="chk"></div><div class="item-body"><div class="item-title">Confirm scene numbers in Mixing Station</div><div class="item-sub">Practice should sit at PC 1, Gig at PC 2 — double check before assigning footswitches, in case the save order shifted anything.</div></div></div>
+
+      <div class="item" data-id="p4-3"><div class="chk"></div><div class="item-body"><div class="item-title">Test each footswitch against its scene</div><div class="item-sub">Confirm the right scene loads for each press — a channel or PC mismatch is the most common miss here.</div></div></div>
+    </div>
+  </details>
+
+  <!-- QUICK REFERENCE -->
+  <details data-phase="qr">
+    <summary><div class="tape"><span class="tape-caret">▸</span><span class="tape-text">Quick Reference</span><span class="tape-count" data-count="qr"></span></div></summary>
+    <div class="section-body">
+      <div class="item" data-id="qr-1"><div class="chk"></div><div class="item-body"><div class="item-title">"Nothing's happening when I press the footswitch"</div><div class="item-sub">Check DIN Rx is still enabled — it can get toggled off if the XR18 config resets.</div></div></div>
+      <div class="item" data-id="qr-2"><div class="chk"></div><div class="item-body"><div class="item-title">"Chocolate won't pair to WIDI"</div><div class="item-sub">Something else Bluetooth-MIDI-capable is probably powered on nearby and grabbing the connection first — check the iPad and MIDI B are both off.</div></div></div>
+      <div class="item" data-id="qr-3"><div class="chk"></div><div class="item-body"><div class="item-title">"Need to reprogram the Chocolate"</div><div class="item-sub">Disconnect it from WIDI first, pair to the iPad, open CubeSuite, make changes, then disconnect from iPad and re-pair to WIDI.</div></div></div>
+      <div class="item" data-id="qr-4"><div class="chk"></div><div class="item-body"><div class="item-title">Vocabulary refresher</div><div class="item-sub"><b style="color:var(--cyan)">PC</b> = Program Change, recalls a preset/scene. <b style="color:var(--cyan)">CC</b> = Continuous Controller, used for faders, mutes, and on/off toggles.</div></div></div>
+    </div>
+  </details>
+
+  <div class="footer-note">MIDI Footswitch Runbook · M-Vave Chocolate + LEKATO WIDI + XR18<br>Progress saved automatically on this device</div>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'iem-midi-runbook-checks';
+let state = {};
+
+async function loadState(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY);
+    if(res && res.value) state = JSON.parse(res.value);
+  }catch(e){ state = {}; }
+  render();
+}
+
+async function saveState(){
+  try{ await window.storage.set(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ console.error('Could not save progress', e); }
+}
+
+function render(){
+  document.querySelectorAll('.item[data-id]').forEach(el=>{
+    const id = el.getAttribute('data-id');
+    const chk = el.querySelector('.chk');
+    const on = !!state[id];
+    chk.classList.toggle('on', on);
+    el.classList.toggle('checked', on);
+  });
+
+  document.querySelectorAll('details[data-phase]').forEach(d=>{
+    const phase = d.getAttribute('data-phase');
+    const phaseItems = d.querySelectorAll('.item[data-id]');
+    const total = phaseItems.length;
+    let done = 0;
+    phaseItems.forEach(el=>{ if(state[el.getAttribute('data-id')]) done++; });
+    const countEl = d.querySelector(`[data-count="${phase}"]`);
+    if(countEl) countEl.textContent = `${done}/${total}`;
+  });
+
+  const all = document.querySelectorAll('.item[data-id]');
+  const total = all.length;
+  let done = 0;
+  all.forEach(el=>{ if(state[el.getAttribute('data-id')]) done++; });
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById('pctLabel').textContent = pct + '%';
+
+  const track = document.getElementById('meterTrack');
+  const segCount = 20;
+  track.innerHTML = '';
+  const litSegs = Math.round((pct/100) * segCount);
+  for(let i=0;i<segCount;i++){
+    const seg = document.createElement('div');
+    seg.className = 'meter-seg';
+    if(i < litSegs){
+      if(i < segCount*0.6) seg.classList.add('lit-1');
+      else if(i < segCount*0.85) seg.classList.add('lit-2');
+      else seg.classList.add('lit-3');
+    }
+    track.appendChild(seg);
+  }
+}
+
+document.addEventListener('click', (e)=>{
+  const chk = e.target.closest('.chk');
+  if(!chk) return;
+  const item = chk.closest('.item[data-id]');
+  if(!item) return;
+  const id = item.getAttribute('data-id');
+  state[id] = !state[id];
+  saveState();
+  render();
+});
+
+loadState();
+</script>
+
+</body>
+</html>

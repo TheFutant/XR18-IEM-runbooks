@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Band EPK</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&family=Archivo:wght@400;500;600;700&display=swap');
+
+:root{
+  --paper:#efe6d3;
+  --paper-deep:#e5d8bf;
+  --ink:#1d150e;
+  --ink-soft:#4a3d2e;
+  --oxblood:#8f2d20;
+  --brass:#b0802f;
+  --rule:#c9b892;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:#8a7b5e;
+  font-family:'Archivo',sans-serif;
+  color:var(--ink);
+  padding:24px 12px;
+}
+
+/* The sheet */
+.sheet{
+  max-width:820px;margin:0 auto;
+  background:var(--paper);
+  background-image:
+    radial-gradient(circle at 15% 10%, rgba(143,45,32,0.04), transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(176,128,47,0.05), transparent 45%);
+  border:1px solid var(--rule);
+  box-shadow:0 12px 40px rgba(0,0,0,0.35);
+  padding:44px 46px 40px;
+}
+
+/* screen-only helper banner */
+.fillnote{
+  max-width:820px;margin:0 auto 16px;
+  background:#241a10;color:#f0e4cd;
+  border-left:3px solid var(--brass);
+  padding:11px 15px;border-radius:4px;
+  font-size:13px;line-height:1.5;
+}
+.fillnote b{color:var(--brass);}
+@media print{ .fillnote{display:none;} body{background:#fff;padding:0;} .sheet{box-shadow:none;border:none;max-width:none;} }
+
+/* Header */
+.eyebrow{
+  font-family:'Oswald',sans-serif;font-weight:600;
+  letter-spacing:4px;text-transform:uppercase;font-size:12px;
+  color:var(--oxblood);text-align:center;margin-bottom:10px;
+}
+.namewrap{text-align:center;position:relative;padding:6px 0 4px;}
+.namewrap::before,.namewrap::after{
+  content:'';position:absolute;top:50%;width:70px;height:2px;background:var(--ink);
+}
+.namewrap::before{left:0;}
+.namewrap::after{right:0;}
+.bandname{
+  font-family:'Anton',sans-serif;
+  font-size:60px;line-height:0.92;letter-spacing:1px;
+  text-transform:uppercase;color:var(--ink);margin:0;
+}
+.bandname .placeholder{
+  color:var(--oxblood);
+  border-bottom:3px dashed var(--brass);
+  padding-bottom:2px;
+}
+.tagline{
+  font-family:'Oswald',sans-serif;font-weight:500;
+  font-size:16px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--ink-soft);text-align:center;margin:12px 0 4px;
+}
+.location{
+  text-align:center;font-size:13px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--brass);font-weight:600;
+  font-family:'Oswald',sans-serif;margin-bottom:26px;
+}
+
+.divider{height:2px;background:var(--ink);margin:26px 0;position:relative;}
+.divider::after{
+  content:'★';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  background:var(--paper);padding:0 12px;color:var(--oxblood);font-size:13px;
+}
+
+/* Body sections */
+.lead{
+  font-size:16px;line-height:1.62;text-align:center;
+  max-width:640px;margin:0 auto;color:var(--ink);
+}
+.lead strong{color:var(--oxblood);}
+
+.sec-label{
+  font-family:'Oswald',sans-serif;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;font-size:14px;
+  color:var(--oxblood);margin:0 0 14px;
+  display:flex;align-items:center;gap:10px;
+}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--rule);}
+
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:8px;}
+@media (max-width:680px){ .cols{grid-template-columns:1fr;gap:24px;} }
+
+.why li{
+  font-size:14px;line-height:1.5;margin-bottom:11px;padding-left:20px;position:relative;
+  list-style:none;
+}
+.why{margin:0;padding:0;}
+.why li::before{
+  content:'▸';position:absolute;left:0;color:var(--brass);font-size:13px;
+}
+.why b{color:var(--ink);}
+
+/* lineup */
+.lineup{margin:0;padding:0;list-style:none;}
+.lineup li{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:7px 0;border-bottom:1px dotted var(--rule);font-size:14px;
+}
+.lineup li:last-child{border-bottom:none;}
+.lineup .role{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:0.5px;}
+.lineup .inst{color:var(--ink-soft);font-size:13px;}
+.vocal-note{
+  font-size:12.5px;color:var(--oxblood);font-style:italic;margin-top:10px;text-align:right;
+}
+
+.repertoire{font-size:14px;line-height:1.6;}
+.repertoire .hl{color:var(--oxblood);font-weight:600;}
+
+/* tech callout */
+.tech{
+  background:var(--paper-deep);border:1px solid var(--rule);
+  border-radius:6px;padding:18px 20px;margin-top:8px;
+}
+.tech .sec-label{margin-bottom:10px;}
+.tech p{font-size:14px;line-height:1.55;margin:0;}
+.tech b{color:var(--oxblood);}
+
+/* media + booking */
+.slot{
+  border:2px dashed var(--brass);border-radius:6px;
+  padding:16px 18px;text-align:center;color:var(--ink-soft);
+  font-size:13px;line-height:1.5;background:rgba(176,128,47,0.05);
+}
+.slot .slot-title{
+  font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--oxblood);font-size:13px;display:block;margin-bottom:4px;
+}
+
+.booking{text-align:center;margin-top:8px;}
+.booking .book-line{
+  font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1px;
+  font-size:15px;color:var(--ink);margin:5px 0;
+}
+.booking .ph{color:var(--oxblood);border-bottom:1px dashed var(--brass);}
+
+.footer{
+  text-align:center;margin-top:30px;padding-top:16px;border-top:2px solid var(--ink);
+  font-family:'Oswald',sans-serif;letter-spacing:3px;text-transform:uppercase;
+  font-size:11px;color:var(--brass);
+}
+</style>
+</head>
+<body>
+
+<div class="fillnote">
+  <b>Before you send this:</b> fill the dashed slots — band name (appears in the header), a photo, a live video link, and booking contact. Everything else is written and ready. To save as PDF: open in a browser → Print → "Save as PDF." The helper banners like this one won't appear in the PDF.
+</div>
+
+<div class="sheet">
+
+  <div class="eyebrow">Live Classic Rock · Available for Booking</div>
+
+  <div class="namewrap">
+    <h1 class="bandname"><span class="placeholder">[ BAND&nbsp;NAME ]</span></h1>
+  </div>
+
+  <div class="tagline">Six Pieces · Four Decades of Rock · One Dance Floor</div>
+  <div class="location">Greater St. Louis · Metro East, Illinois</div>
+
+  <p class="lead">
+    A six-piece classic rock band built around big guitars, layered vocals, and a setlist designed to fill a room. From wedding receptions to park stages and summer festivals, we play the songs everyone already knows and wants to hear — <strong>live, in full, with the energy of the originals.</strong>
+  </p>
+
+  <div class="divider"></div>
+
+  <div class="cols">
+    <div>
+      <div class="sec-label">Why Book Us</div>
+      <ul class="why">
+        <li><b>Full live sound</b> — two guitars, bass, drums, keys, and lead vocals with four-part harmony.</li>
+        <li><b>A crowd-first setlist</b> that spans the classic rock canon and keeps every generation on its feet.</li>
+        <li><b>Self-contained &amp; professional</b> — we bring our own pro-grade sound and in-ear monitoring, and can run our own PA or plug straight into your venue's system.</li>
+        <li><b>Flexible sets</b> sized to your event, from relaxed early sets to full dance-floor headlining.</li>
+        <li><b>Easy to work with</b> — punctual, low-drama, fast load-in.</li>
+      </ul>
+    </div>
+    <div>
+      <div class="sec-label">The Lineup</div>
+      <ul class="lineup">
+        <li><span class="role">Lead Vocals</span><span class="inst">front &amp; center</span></li>
+        <li><span class="role">Guitar</span><span class="inst">+ vocals</span></li>
+        <li><span class="role">Guitar</span><span class="inst">rhythm &amp; lead</span></li>
+        <li><span class="role">Keys</span><span class="inst">+ vocals</span></li>
+        <li><span class="role">Bass</span><span class="inst">+ vocals</span></li>
+        <li><span class="role">Drums</span><span class="inst">the engine room</span></li>
+      </ul>
+      <div class="vocal-note">Four vocalists — real harmonies, not just a lead.</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="sec-label">The Set</div>
+  <p class="repertoire">
+    Four-plus decades of classic rock — the <span class="hl">arena anthems</span>, the <span class="hl">bar-band staples</span>, and the <span class="hl">sing-along hits</span> that get every generation out of their seats. Sets are tailored to the room, whether that's a dinner-friendly opener or a full night of dancing. <em>Full song list available on request.</em>
+  </p>
+
+  <div class="tech">
+    <div class="sec-label">Sound &amp; Logistics</div>
+    <p>
+      Fully self-contained professional audio. We run a modern <b>digital mixing rig with wireless in-ear monitoring</b> — which means a <b>quiet stage</b> (a favorite of wedding venues), a compact footprint, and a fast, clean load-in. We can provide a complete PA for own-sound events, or integrate seamlessly with a supplied front-of-house system.
+    </p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="cols">
+    <div class="slot">
+      <span class="slot-title">Watch Us Live</span>
+      Add a live video link here once you have a clip — even one good phone-shot song from a gig. Bookers want to see you play to a crowd.
+    </div>
+    <div class="slot">
+      <span class="slot-title">Photo</span>
+      Drop in a band photo here — a live shot beats a posed one. This is the first thing a booker's eye lands on.
+    </div>
+  </div>
+
+  <div style="margin-top:26px;">
+    <div class="sec-label" style="justify-content:center;">Booking</div>
+    <div class="booking">
+      <div class="book-line">Contact: <span class="ph">[ Name ]</span></div>
+      <div class="book-line"><span class="ph">[ Phone ]</span> · <span class="ph">[ Email ]</span></div>
+      <div class="book-line"><span class="ph">[ Website / Social ]</span></div>
+    </div>
+  </div>
+
+  <div class="footer">★ Available for Weddings · Private Events · Festivals · Parks ★</div>
+
+</div>
+
+</body>
+</html>

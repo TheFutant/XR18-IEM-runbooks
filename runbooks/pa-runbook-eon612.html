@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>PA Runbook — 2× EON612 + XR18</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --deep:#0e1013; --panel:#15181c; --raised:#1c2127;
+    --rule:#2b333b; --rule-soft:#21272d;
+    --signal:#43c46b; --attn:#ffb02e; --clip:#ff4b4b;
+    --text:#e4e8ec; --label:#7d8792; --dim:#59626c;
+    --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans:"Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; scroll-padding-top:150px; }
+  body{
+    background:var(--deep); color:var(--text); font-family:var(--sans);
+    font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased; padding-bottom:5rem;
+  }
+
+  body.m-sub .o-nosub{ display:none !important; }
+  body.m-nosub .o-sub{ display:none !important; }
+
+  .silk{
+    font-family:var(--mono); font-weight:700; font-size:.62rem;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--dim);
+  }
+
+  .mast{
+    border-bottom:1px solid var(--rule);
+    background:linear-gradient(180deg,#191d22 0%,var(--panel) 100%);
+    padding:1.6rem 1.15rem 1.15rem;
+  }
+  .mast h1{
+    font-family:var(--mono); font-weight:800;
+    font-size:clamp(1.35rem,5.4vw,2rem); letter-spacing:-.02em;
+    line-height:1.12; text-transform:uppercase; margin:.5rem 0 .55rem;
+  }
+  .mast h1 em{ font-style:normal; color:var(--attn); }
+  .mast .sub{ color:var(--label); font-size:.9rem; max-width:56ch; }
+  .rig{ display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.95rem; }
+  .chip{
+    font-family:var(--mono); font-size:.66rem; font-weight:500; letter-spacing:.05em;
+    padding:.3rem .5rem; border-radius:3px; background:var(--raised);
+    border:1px solid var(--rule); color:var(--label); white-space:nowrap;
+  }
+  .chip.hot{ border-color:rgba(255,176,46,.4); color:var(--attn); }
+
+  .modebar{
+    position:sticky; top:0; z-index:30;
+    background:rgba(14,16,19,.96); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--rule); padding:.7rem 1.15rem;
+  }
+  .modes{ display:flex; gap:.4rem; max-width:820px; margin:0 auto; }
+  .modes button{
+    flex:1; font-family:var(--mono); font-weight:800; font-size:.78rem;
+    letter-spacing:.09em; text-transform:uppercase;
+    background:var(--panel); color:var(--dim);
+    border:1px solid var(--rule); border-radius:6px;
+    padding:.75rem .5rem; cursor:pointer; min-height:46px;
+    transition:color .12s, border-color .12s, background .12s;
+  }
+  .modes button:hover{ color:var(--label); border-color:var(--dim); }
+  .modes button:focus-visible{ outline:2px solid var(--attn); outline-offset:2px; }
+  .modes button.on{
+    background:#241d10; color:var(--attn); border-color:var(--attn);
+  }
+
+  .nav{
+    position:sticky; top:61px; z-index:20;
+    background:rgba(14,16,19,.93); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--rule);
+    display:flex; align-items:center; gap:.75rem;
+    padding:.5rem .6rem .5rem 1.15rem;
+  }
+  .nav-scroll{ display:flex; gap:.3rem; overflow-x:auto; flex:1; scrollbar-width:none; -ms-overflow-style:none; }
+  .nav-scroll::-webkit-scrollbar{ display:none; }
+  .nav-scroll a{
+    font-family:var(--mono); font-size:.7rem; font-weight:700; letter-spacing:.06em;
+    color:var(--label); text-decoration:none; padding:.45rem .55rem;
+    border-radius:4px; border:1px solid transparent; white-space:nowrap;
+    min-height:34px; display:flex; align-items:center;
+  }
+  .nav-scroll a:hover,.nav-scroll a:focus-visible{ color:var(--text); background:var(--raised); border-color:var(--rule); }
+  .meter{
+    font-family:var(--mono); font-size:.68rem; font-weight:700;
+    color:var(--dim); white-space:nowrap; padding-right:.5rem; letter-spacing:.04em;
+  }
+
+  main{ padding:0 1.15rem; max-width:820px; margin:0 auto; }
+
+  .sec{ border:1px solid var(--rule); background:var(--panel); border-radius:8px; margin-top:1.4rem; overflow:hidden; }
+  .sec-hd{ padding:1rem 1.05rem .85rem; border-bottom:1px solid var(--rule-soft); background:var(--raised); }
+  .sec-hd .num{ color:var(--attn); }
+  .sec-hd h2{
+    font-family:var(--mono); font-weight:800; font-size:1.02rem;
+    text-transform:uppercase; margin-top:.35rem; line-height:1.25;
+  }
+  .sec-hd p{ color:var(--label); font-size:.85rem; margin-top:.35rem; }
+  .sec-bd{ padding:1.05rem; }
+  .sec.subonly{ border-color:rgba(255,176,46,.32); }
+  .sec.subonly .sec-hd{ background:#20211c; }
+
+  ul.check{ list-style:none; }
+  ul.check li{ display:flex; gap:.7rem; align-items:flex-start; padding:.62rem 0; border-bottom:1px solid var(--rule-soft); }
+  ul.check li:last-child{ border-bottom:0; padding-bottom:0; }
+  ul.check li:first-child{ padding-top:0; }
+  ul.check input[type=checkbox]{
+    appearance:none; -webkit-appearance:none; flex:0 0 auto;
+    width:22px; height:22px; margin-top:2px; border:1.5px solid var(--rule);
+    border-radius:4px; background:var(--deep); cursor:pointer; position:relative;
+  }
+  ul.check input[type=checkbox]:focus-visible{ outline:2px solid var(--attn); outline-offset:2px; }
+  ul.check input[type=checkbox]:checked{ background:var(--signal); border-color:var(--signal); }
+  ul.check input[type=checkbox]:checked::after{
+    content:""; position:absolute; left:7px; top:3px; width:5px; height:10px;
+    border:solid #0e1013; border-width:0 2px 2px 0; transform:rotate(45deg);
+  }
+  ul.check label{ cursor:pointer; flex:1; font-size:.94rem; }
+  ul.check input:checked + label{ color:var(--dim); }
+  ul.check input:checked + label b{ color:var(--dim); }
+  ul.check label b{ font-weight:600; }
+  ul.check label .val{ font-family:var(--mono); font-weight:700; color:var(--attn); }
+  ul.check label .bad{ font-family:var(--mono); font-weight:700; color:var(--clip); }
+  ul.check input:checked + label .val, ul.check input:checked + label .bad{ color:var(--dim); }
+
+  .panelmap{ background:var(--deep); border:1px solid var(--rule); border-radius:6px; padding:.85rem .9rem; margin-bottom:1.05rem; }
+  .panelmap .silk{ margin-bottom:.6rem; }
+  .pmrow{ display:grid; grid-template-columns:1fr auto; gap:.7rem; align-items:baseline; padding:.4rem 0; border-bottom:1px dashed var(--rule-soft); font-size:.85rem; }
+  .pmrow:last-child{ border-bottom:0; padding-bottom:0; }
+  .pmrow .ctl{ font-family:var(--mono); font-weight:700; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; }
+  .pmrow .set{ font-family:var(--mono); font-weight:700; font-size:.78rem; color:var(--signal); text-align:right; }
+  .pmrow .set.warn{ color:var(--clip); }
+
+  .path{
+    font-family:var(--mono); font-size:.78rem; font-weight:500;
+    background:var(--deep); border:1px solid var(--rule);
+    border-left:3px solid var(--attn); padding:.62rem .75rem;
+    border-radius:0 4px 4px 0; margin-bottom:1rem; overflow-x:auto; white-space:nowrap;
+  }
+
+  .clip{ border:1px solid var(--clip); border-left-width:3px; background:rgba(255,75,75,.06); border-radius:0 5px 5px 0; padding:.85rem .95rem; margin:1rem 0; }
+  .clip .silk{ color:var(--clip); }
+  .clip p{ font-size:.9rem; margin-top:.4rem; }
+  .clip p + p{ margin-top:.55rem; }
+  .clip strong{ color:var(--clip); font-weight:700; }
+  .clip code{ font-family:var(--mono); font-size:.85em; font-weight:700; color:var(--attn); }
+
+  .tech{ border:1px solid var(--attn); border-left-width:3px; background:rgba(255,176,46,.06); border-radius:0 5px 5px 0; padding:.85rem .95rem; margin:1rem 0; }
+  .tech .silk{ color:var(--attn); }
+  .tech p{ font-size:.9rem; margin-top:.4rem; }
+  .tech p + p{ margin-top:.55rem; }
+  .tech strong{ color:var(--attn); font-weight:700; }
+  .tech code{ font-family:var(--mono); font-size:.85em; font-weight:700; color:var(--attn); }
+
+  .why{ border-left:2px solid var(--rule); padding-left:.85rem; margin-top:1rem; color:var(--label); font-size:.855rem; line-height:1.62; }
+  .why b{ color:var(--text); font-weight:600; }
+  .why code{ font-family:var(--mono); font-size:.88em; color:var(--attn); font-weight:700; }
+
+  .rack{ margin:.15rem 0 0; }
+  .strip{
+    display:grid; grid-template-columns:1fr auto; align-items:center; gap:.75rem;
+    padding:.72rem .8rem; border:1px solid var(--rule-soft); border-left:3px solid var(--rule);
+    background:var(--deep); margin-bottom:.3rem; border-radius:0 5px 5px 0;
+  }
+  .strip.stacked{ border-left-color:var(--attn); }
+  .strip.hold{ border-left-color:var(--clip); background:rgba(255,75,75,.05); }
+  .strip .src{ min-width:0; }
+  .strip .src .nm{ font-family:var(--mono); font-weight:700; font-size:.83rem; text-transform:uppercase; letter-spacing:.04em; }
+  .strip .src .who{ font-size:.72rem; color:var(--dim); margin-top:.1rem; }
+  .strip .hz{ font-family:var(--mono); font-weight:800; font-size:1.02rem; color:var(--attn); text-align:right; white-space:nowrap; line-height:1.25; }
+  .strip.hold .hz{ color:var(--clip); font-size:.8rem; }
+  .strip .hz .slope{ display:block; font-size:.6rem; font-weight:700; letter-spacing:.09em; color:var(--signal); text-transform:uppercase; margin-top:.1rem; }
+  .strip .hz .unit{ font-size:.68em; color:var(--dim); font-weight:500; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:1rem; margin-top:.85rem; padding-top:.8rem; border-top:1px solid var(--rule-soft); }
+  .legend span{ display:flex; align-items:center; gap:.42rem; font-size:.75rem; color:var(--label); }
+  .legend i{ width:3px; height:14px; border-radius:1px; display:block; }
+
+  .moves{ list-style:none; }
+  .moves li{ display:grid; grid-template-columns:1fr auto; gap:.65rem; align-items:baseline; padding:.58rem 0; border-bottom:1px solid var(--rule-soft); font-size:.9rem; }
+  .moves li:last-child{ border-bottom:0; padding-bottom:0; }
+  .moves li:first-child{ padding-top:0; }
+  .moves .k b{ font-weight:600; }
+  .moves .k small{ display:block; color:var(--dim); font-size:.74rem; margin-top:.08rem; }
+  .moves .v{ font-family:var(--mono); font-weight:700; font-size:.82rem; color:var(--attn); text-align:right; white-space:nowrap; }
+  .moves .v.cut{ color:var(--signal); }
+  .moves .v.down{ color:var(--clip); }
+
+  #card .sec-hd{ background:#20252b; }
+  .cardgrid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(128px,1fr)); gap:.4rem; }
+  .cell{ background:var(--deep); border:1px solid var(--rule-soft); border-radius:5px; padding:.6rem .65rem; }
+  .cell .cl{ font-family:var(--mono); font-size:.6rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--dim); }
+  .cell .cv{ font-family:var(--mono); font-weight:800; font-size:1.05rem; color:var(--attn); margin-top:.18rem; line-height:1.2; }
+  .cell .cv .u{ font-size:.62em; color:var(--dim); font-weight:500; }
+  .cell.st{ border-color:rgba(255,176,46,.35); }
+  .cell.st .cl::after{ content:" ▪ 24dB"; color:var(--signal); }
+
+  footer{ margin-top:2rem; padding:1.2rem 0 0; border-top:1px solid var(--rule-soft); color:var(--dim); font-size:.78rem; line-height:1.65; }
+  footer b{ color:var(--label); font-weight:600; }
+
+  @media (max-width:420px){
+    main{ padding:0 .8rem; }
+    .mast{ padding:1.3rem .8rem 1rem; }
+    .nav{ padding-left:.8rem; }
+    .modebar{ padding:.6rem .8rem; }
+    .strip{ padding:.65rem .7rem; }
+  }
+  @media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } *{ transition:none !important; } }
+</style>
+</head>
+<body class="m-nosub">
+
+<header class="mast">
+  <div class="silk">Front of house · rear panel only · no app</div>
+  <h1>PA<br><em>Runbook</em></h1>
+  <p class="sub">Six-piece through a bar on two 12-inch tops. Every setting is on a rear panel or in Mixing Station. You never open the EON600 app.</p>
+  <div class="rig">
+    <span class="chip">2× JBL EON612</span>
+    <span class="chip">Behringer XR18</span>
+    <span class="chip hot">−3 dB @ 57 Hz</span>
+    <span class="chip">126 dB max SPL</span>
+    <span class="chip">33 lb each</span>
+  </div>
+</header>
+
+<div class="modebar">
+  <div class="modes">
+    <button id="b-nosub" class="on" onclick="setMode('nosub')">No sub</button>
+    <button id="b-sub" onclick="setMode('sub')">With sub</button>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-scroll">
+    <a href="#card">CARD</a>
+    <a href="#s0">00</a>
+    <a href="#s1">01 612s</a>
+    <a href="#ssub" class="o-sub">01b SUB</a>
+    <a href="#s2">02 HPF</a>
+    <a href="#s3">03 BASS</a>
+    <a href="#s4">04 MUD</a>
+    <a href="#s5">05 COMP</a>
+    <a href="#s6">06 ROOM</a>
+    <a href="#s7">07 SAVE</a>
+  </div>
+  <div class="meter" id="meter">0/0</div>
+</nav>
+
+<main>
+
+  <!-- QUICK CARD -->
+  <section class="sec" id="card">
+    <div class="sec-hd">
+      <div class="silk">If you already know the drill</div>
+      <h2>Quick Card</h2>
+      <p class="o-nosub">Rear panels, then the ten numbers.</p>
+      <p class="o-sub">Rear panels, then the ten numbers. Sub settings in §01b.</p>
+    </div>
+    <div class="sec-bd">
+
+      <div class="panelmap">
+        <div class="silk">EON612 rear panel — both boxes</div>
+        <div class="pmrow"><span class="ctl">Preset</span><span class="set warn">MAIN — never SUB</span></div>
+        <div class="pmrow"><span class="ctl">EQ+ LED</span><span class="set warn">OFF</span></div>
+        <div class="pmrow"><span class="ctl">Mic / Line</span><span class="set">LINE</span></div>
+        <div class="pmrow"><span class="ctl">CH2</span><span class="set">Unused — gain down</span></div>
+      </div>
+
+      <div class="panelmap o-sub">
+        <div class="silk">Subwoofer rear panel</div>
+        <div class="pmrow"><span class="ctl">Outputs mode</span><span class="set warn">XOVER — not LINK</span></div>
+        <div class="pmrow"><span class="ctl">Xover</span><span class="set">90 Hz</span></div>
+        <div class="pmrow"><span class="ctl">Phase</span><span class="set">Test 0° and 180°</span></div>
+      </div>
+
+      <div class="cardgrid">
+        <div class="cell st"><div class="cl">Bass DI</div><div class="cv"><span class="o-nosub">45–50</span><span class="o-sub">35–40</span><span class="u"> Hz</span></div></div>
+        <div class="cell st"><div class="cl">Kick</div><div class="cv"><span class="o-nosub">45</span><span class="o-sub">35–40</span><span class="u"> Hz</span></div></div>
+        <div class="cell"><div class="cl">Snare</div><div class="cv">120–150<span class="u"> Hz</span></div></div>
+        <div class="cell"><div class="cl">OH — mono</div><div class="cv">120<span class="u"> Hz</span></div></div>
+        <div class="cell"><div class="cl">Guitars</div><div class="cv">90–100<span class="u"> Hz</span></div></div>
+        <div class="cell"><div class="cl">Vocals</div><div class="cv">100–120<span class="u"> Hz</span></div></div>
+        <div class="cell"><div class="cl">Keys</div><div class="cv">60–80<span class="u"> Hz</span></div></div>
+        <div class="cell"><div class="cl">Main LR</div><div class="cv"><span class="o-nosub">40</span><span class="o-sub">30</span><span class="u"> Hz</span></div></div>
+      </div>
+
+      <div class="why">
+        <b>Only bass and kick get the stacked filter.</b> The XR18's dedicated low-cut is <code>12 dB/oct</code>. Engage it at your target, <em>then also</em> set EQ band 1 to <code>LCut</code> at the same frequency, <code>Q 0.7</code>. They stack to <code>24 dB/oct</code>. Everywhere else, the low-cut alone is correct — <b>don't stack, you'll waste an EQ band.</b>
+      </div>
+    </div>
+  </section>
+
+  <!-- 00 -->
+  <section class="sec" id="s0">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">00</span> · Before you leave</div>
+      <h2>Load Out</h2>
+      <p>No firmware step. The EON600 line is discontinued and you're not using the app anyway.</p>
+    </div>
+    <div class="sec-bd">
+      <ul class="check">
+        <li class="o-nosub"><input type="checkbox" id="c1"><label for="c1"><b>Load the <span class="val">PA / No Sub</span> scene</b> on the XR18 so you're not dialing from scratch.</label></li>
+        <li class="o-sub"><input type="checkbox" id="c1s"><label for="c1s"><b>Load the <span class="val">PA / With Sub</span> scene</b> on the XR18 so you're not dialing from scratch.</label></li>
+        <li><input type="checkbox" id="c2"><label for="c2"><b>Poles, XLR runs, power.</b> The 612s are 33 lb each — one person, no drama.</label></li>
+        <li class="o-sub"><input type="checkbox" id="c2s"><label for="c2s"><b>Two circuits.</b> PA on one, rack on the other. The sub takes you to roughly <span class="val">12 A</span> — the continuous ceiling of a single 15 A leg.</label></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 01 -->
+  <section class="sec" id="s1">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">01</span> · Rear panel only</div>
+      <h2>Set Up the 612s</h2>
+      <p>Four things on the back of each box. Identical in both modes.</p>
+    </div>
+    <div class="sec-bd">
+      <ul class="check">
+        <li><input type="checkbox" id="c3"><label for="c3"><b>Preset: <span class="val">MAIN</span>.</b> Cycle the Preset button and confirm. Not Monitor (wedge tuning), not Speech, and <span class="bad">never SUB</span> — not in either mode. See below.</label></li>
+        <li><input type="checkbox" id="c4"><label for="c4"><b>EQ+ LED: <span class="bad">OFF</span>.</b> If it's lit, a stored EQ curve is being applied and you cannot see what it is. Press it off.</label></li>
+        <li><input type="checkbox" id="c5"><label for="c5"><b>CH1: <span class="val">LINE</span></b>, not Mic. Gain set to use the box's range without pinning the Signal LED.</label></li>
+        <li><input type="checkbox" id="c6"><label for="c6"><b>CH2: gain all the way down.</b> Nothing's plugged in. Don't leave an open input.</label></li>
+        <li><input type="checkbox" id="c7"><label for="c7"><b>Placement:</b> on poles, horn at or above standing head height. Vertical coverage is only <span class="val">60°</span> — height and tilt do real work. Off the floor, away from walls and corners.</label></li>
+      </ul>
+
+      <div class="clip">
+        <div class="silk">▲ Clip — the SUB preset is never used</div>
+        <p>SUB enables a fixed <code>100 Hz high-pass filter</code>. With no subwoofer, that throws away everything below 100 Hz with nothing to catch it — your bottom end vanishes and you'll hunt the mixer for a fault that isn't there.</p>
+        <p><strong>And it's still wrong with the sub connected.</strong> Your sub crosses at <code>90</code> or <code>120 Hz</code>. There is no 100. The two filters would never meet.</p>
+        <p><strong>MAIN. Both boxes. Permanently.</strong></p>
+      </div>
+
+      <div class="clip">
+        <div class="silk">▲ Clip — EQ+ hides a curve you can't see</div>
+        <p>The <code>EQ+</code> button toggles a <em>saved</em> EQ curve on and off. That curve is only visible in the EON600 app — which you're not running.</p>
+        <p>If these boxes came from anywhere but a sealed carton, someone may have stored a curve in there. <strong>You can't inspect it, but you can switch it off.</strong> Confirm the green EQ+ LED is dark on both.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 01b SUB -->
+  <section class="sec subonly o-sub" id="ssub">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">01b</span> · With sub only</div>
+      <h2>Set Up the Sub</h2>
+      <p>The sub owns the crossover. Four cables and three switches.</p>
+    </div>
+    <div class="sec-bd">
+
+      <div class="path">Main L → IN 1 · Main R → IN 2 · OUT 1 → 612 L · OUT 2 → 612 R</div>
+
+      <ul class="check">
+        <li><input type="checkbox" id="cs1"><label for="cs1"><b>Outputs mode: <span class="bad">XOVER</span>.</b> Not LINK. This is the one that silently ruins the night.</label></li>
+        <li><input type="checkbox" id="cs2"><label for="cs2"><b>Xover: <span class="val">90 Hz</span>.</b> Not 120 — see below.</label></li>
+        <li><input type="checkbox" id="cs3"><label for="cs3"><b>Phase: test both.</b> Play something bass-heavy at gig volume, flip <span class="val">0°</span> then <span class="val">180°</span>. One is audibly fuller at the crossover. Keep it.</label></li>
+        <li><input type="checkbox" id="cs4"><label for="cs4"><b>Level: start low.</b> Bring it up until you feel it, then back off a hair. A sub that announces itself is too loud.</label></li>
+      </ul>
+
+      <div class="clip">
+        <div class="silk">▲ Clip — LINK passes full range</div>
+        <p><code>OUTPUTS MODE</code> has two positions and only one of them is a crossover.</p>
+        <p><strong>LINK</strong> = outputs pass <em>full range</em>. Daisy-chain mode. Leave it here and you have a subwoofer, plus two 612s still burning excursion on 45 Hz — <strong>you've bought nothing.</strong></p>
+        <p><strong>XOVER</strong> = outputs are high-passed. Check it every load-in. It's a switch, and switches move in vans.</p>
+      </div>
+
+      <div class="clip">
+        <div class="silk">▲ Clip — take 90, not 120</div>
+        <p>A 12" top carries down to 90 Hz without complaint. At <strong>120 Hz</strong> you push enough midbass into the sub that the ear starts to <em>localize</em> it — the low end audibly comes from a box on the floor instead of from the band.</p>
+        <p>With one centre sub, staying non-directional is the entire point.</p>
+      </div>
+
+      <div class="why">
+        <b>Why phase matters:</b> the sub is on the floor, the tops are four feet above it on poles. Their acoustic centres don't line up, so around the crossover they partially <b>cancel</b>. The flip takes thirty seconds and is worth several dB. Most bands never do it.<br><br>
+        <b>What this sub doesn't have: delay.</b> Phase 0/180 is the crude alignment tool, not the fine one. Livable — polarity plus placement gets you most of the way — but it's a real gap.
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section class="sec" id="s2">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">02</span> · The big win</div>
+      <h2>High-Pass Everything</h2>
+      <p class="o-nosub">The 612 is 10 dB down at 48 Hz. Below that it radiates nothing and the cone unloads.</p>
+      <p class="o-sub">The sub owns everything under 90 Hz. Your job is to make sure only kick and bass get down there.</p>
+    </div>
+    <div class="sec-bd">
+
+      <div class="tech">
+        <div class="silk">▲ Technique — stack to 24 dB/oct</div>
+        <p>The XR18's dedicated channel low-cut is only <code>12 dB/oct</code>. Set at 45 Hz, it barely touches 41 Hz.</p>
+        <p><strong>The fix:</strong> engage the low-cut at your target, <em>then also</em> set <code>EQ band 1</code> to <code>LCut</code> type at the same frequency, <code>Q 0.7</code>. They stack to <code>24 dB/oct</code>.</p>
+        <p><strong>Only bass and kick.</strong> Stack anywhere else and you've burned an EQ band to solve a problem you don't have.</p>
+      </div>
+
+      <div class="rack">
+        <div class="strip stacked">
+          <div class="src"><div class="nm">Bass DI</div><div class="who">Dan — SansAmp</div></div>
+          <div class="hz"><span class="o-nosub">45–50</span><span class="o-sub">35–40</span> <span class="unit">Hz</span><span class="slope">Stacked</span></div>
+        </div>
+        <div class="strip stacked">
+          <div class="src"><div class="nm">Kick</div><div class="who">Robert</div></div>
+          <div class="hz"><span class="o-nosub">45</span><span class="o-sub">35–40</span> <span class="unit">Hz</span><span class="slope">Stacked</span></div>
+        </div>
+        <div class="strip">
+          <div class="src"><div class="nm">Snare</div></div>
+          <div class="hz">120–150 <span class="unit">Hz</span></div>
+        </div>
+        <div class="strip hold">
+          <div class="src"><div class="nm">Overheads — mono</div><div class="who">These are also your toms. Read below.</div></div>
+          <div class="hz">120 <span class="unit">Hz</span></div>
+        </div>
+        <div class="strip">
+          <div class="src"><div class="nm">Guitars</div><div class="who">Pappy · Jamie</div></div>
+          <div class="hz">90–100 <span class="unit">Hz</span></div>
+        </div>
+        <div class="strip">
+          <div class="src"><div class="nm">Vocals</div><div class="who">Kevin · Dan · Rob · Pappy</div></div>
+          <div class="hz">100–120 <span class="unit">Hz</span></div>
+        </div>
+        <div class="strip hold">
+          <div class="src"><div class="nm">Keys ×2</div><div class="who">Rob — read the warning first</div></div>
+          <div class="hz">Check<br>per song</div>
+        </div>
+        <div class="strip">
+          <div class="src"><div class="nm">Main LR bus</div><div class="who">Band 1 → LCut · rumble backstop</div></div>
+          <div class="hz"><span class="o-nosub">40</span><span class="o-sub">30</span> <span class="unit">Hz</span></div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><i style="background:var(--attn)"></i> Stack to 24 dB/oct</span>
+        <span><i style="background:var(--rule)"></i> Low-cut alone — do not stack</span>
+        <span><i style="background:var(--clip)"></i> Don't set blindly</span>
+      </div>
+
+      <div class="clip">
+        <div class="silk">▲ Clip — the overheads are your toms</div>
+        <p>There are <strong>no tom mics</strong> on this kit. Kick, snare, and a summed overhead pair — that's the whole drum rig.</p>
+        <p>So the overhead channel is carrying every tom fill you play. A rack tom's fundamental lives around <code>100–200 Hz</code>; a floor tom around <code>60–90</code>. High-pass that channel at 350 and <strong>the toms disappear</strong> — every fill turns to cardboard.</p>
+        <p><code>120 Hz</code> still pulls the kick's fundamental out of the overheads, which is what you actually want: two sources of kick low end arriving microseconds apart is where comb filtering comes from. Toms stay. Kick doesn't double.</p>
+        <p><strong>Tune by ear:</strong> toms thin → come down toward 90–100. Kick flabby and doubled → go up toward 150.</p>
+      </div>
+
+      <div class="clip">
+        <div class="silk">▲ Clip — Rob's keys</div>
+        <p><strong>Cars is a synth-bass song.</strong> You Might Think and In Between Days also lean on synth low end.</p>
+        <p>If Rob is carrying the bassline on a patch and you blanket-HPF his channels at 80 Hz, <strong>you gut the hook.</strong> Default piano / organ / pad channels to <code>60–80 Hz</code> — but if one board is doing bass duty on certain tunes, leave it low and settle with Rob who owns the bottom on which songs.</p>
+      </div>
+
+      <div class="why o-nosub">
+        <b>The 612 is usable to 57 Hz</b> (−3 dB) and reaches <code>48 Hz</code> (−10) — so your low A at 55 Hz genuinely exists in the room. Your low E at <b>41.2 Hz</b> does not, and won't without a sub. Filter it out; you're removing something the audience was never going to hear.
+      </div>
+      <div class="why o-sub">
+        <b>The guitar, vocal, overhead and snare filters do not change.</b> They were never a workaround for the missing sub — guitars have nothing useful below 90 Hz and vocals nothing below 100, whatever you play them through. Keeping them filtered is exactly what keeps the sub reproducing <b>kick and bass</b> instead of mud from eleven other channels.
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section class="sec" id="s3">
+    <div class="sec-hd">
+      <div class="silk o-nosub"><span class="num">03</span> · Missing fundamental</div>
+      <div class="silk o-sub"><span class="num">03</span> · Stop compensating</div>
+      <h2 class="o-nosub">Fake the Bottom Octave</h2>
+      <h2 class="o-sub">Undo the Faking</h2>
+      <p class="o-nosub">You can't produce a 41 Hz fundamental. Feed the harmonics and let the ear reconstruct it.</p>
+      <p class="o-sub">The sub produces real fundamentals now. Every trick from the subless mode becomes a liability.</p>
+    </div>
+    <div class="sec-bd">
+
+      <ul class="check">
+        <li class="o-nosub"><input type="checkbox" id="c8"><label for="c8"><b>Turn the SansAmp's Drive <span class="val">up</span>.</b> Your one-knob fix, already in the chain. Drive generates the harmonic content the 612 <em>can</em> radiate. Push it further than you would with a full-range rig.</label></li>
+        <li class="o-sub"><input type="checkbox" id="c8s"><label for="c8s"><b>Turn the SansAmp's Drive <span class="bad">back down</span>.</b> You pushed it to manufacture harmonics the tops could radiate. The sub does fundamentals now — leaving the Drive up puts grind <em>on top of</em> real low end. That's mud, not weight.</label></li>
+      </ul>
+
+      <div class="silk" style="margin:1.2rem 0 .55rem">Bass channel — XR18</div>
+      <ul class="moves o-nosub">
+        <li><div class="k"><b>Protect / gently lift</b><small>Usable low end + the 2nd harmonic of your low notes</small></div><div class="v">80–120 Hz</div></li>
+        <li><div class="k"><b>Add presence</b><small>Where bass <em>definition</em> lives — keeps your line audible under two guitars</small></div><div class="v">700 Hz – 1.5 kHz</div></li>
+      </ul>
+      <ul class="moves o-sub">
+        <li><div class="k"><b>Remove the 80–120 Hz lift</b><small>The sub covers this now. Leaving it in doubles up and gets boomy.</small></div><div class="v down">flatten</div></li>
+        <li><div class="k"><b>Keep the presence</b><small>Definition still matters — two guitars still mask you</small></div><div class="v">700 Hz – 1.5 kHz</div></li>
+      </ul>
+
+      <div class="silk" style="margin:1.2rem 0 .55rem">Kick</div>
+      <ul class="moves o-nosub">
+        <li><div class="k"><b>Beater click</b></div><div class="v">3–5 kHz</div></li>
+        <li><div class="k"><b>Body — all you can get</b></div><div class="v">80–100 Hz</div></li>
+        <li><div class="k"><b>Cut the cardboard box</b></div><div class="v cut">− 250–400 Hz</div></li>
+      </ul>
+      <ul class="moves o-sub">
+        <li><div class="k"><b>Beater click</b><small>Unchanged — still how it cuts</small></div><div class="v">3–5 kHz</div></li>
+        <li><div class="k"><b>Body moves DOWN</b><small>You wanted 80–100 because that's all you had. Now you get real thump.</small></div><div class="v">50–70 Hz</div></li>
+        <li><div class="k"><b>Cut the cardboard box</b></div><div class="v cut">− 250–400 Hz</div></li>
+      </ul>
+
+      <div class="why o-nosub">
+        <b>Why it works:</b> the ear reconstructs a missing fundamental from its harmonic series. Play a 41 Hz low E, let the listener hear only 82 / 123 / 164 Hz, and their brain supplies the 41. It's why a phone speaker can carry a bassline.
+      </div>
+      <div class="why o-sub">
+        <b>This section inverts, and that's the whole reason it exists.</b> Everything in subless mode is a coping strategy for a fundamental you cannot produce. Carry those settings into a rig that <em>can</em> produce it and you get a double dose — harmonics <b>and</b> fundamentals, drive <b>and</b> weight. It reads as woolly and undefined, and you'll blame the sub.
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section class="sec" id="s4">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">04</span> · Subtractive</div>
+      <h2>Carve the Mud</h2>
+      <p>200–500 Hz is where six instruments pile up. Every dB out is a dB of headroom back.</p>
+    </div>
+    <div class="sec-bd">
+      <ul class="moves">
+        <li><div class="k"><b>Guitars</b><small>Boxiness — Pappy, Jamie</small></div><div class="v cut">−2 to −4 dB · 250–400 Hz</div></li>
+        <li><div class="k"><b>Vocals</b><small>Chesty, muddy</small></div><div class="v cut">−2 to −3 dB · 200–300 Hz</div></li>
+        <li><div class="k"><b>Keys / pads</b></div><div class="v cut">cut · 300–500 Hz</div></li>
+        <li><div class="k"><b>Snare</b><small>Only if it's honky</small></div><div class="v cut">cut · ~400 Hz</div></li>
+      </ul>
+      <div class="why o-nosub">
+        Biggest <b>"make a small PA sound bigger"</b> move after high-passing, and it costs nothing. Cut, don't boost.
+      </div>
+      <div class="why o-sub">
+        Still worth doing, but you can be <b>gentler</b> — the tops aren't burning excursion on 50 Hz any more, so they have real headroom. Start at the lighter end of each range. Cut, don't boost.
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 -->
+  <section class="sec" id="s5">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">05</span> · Headroom management</div>
+      <h2>Compression</h2>
+      <p>Peaks are the enemy. Especially bass peaks into a sub.</p>
+    </div>
+    <div class="sec-bd">
+      <ul class="moves">
+        <li><div class="k"><b>Bass — compress firmly</b><small>Highest-value compressor in the mix. An even level lets you sit it higher without transients slamming the woofer.</small></div><div class="v">4:1 · 3–6 dB GR</div></li>
+        <li><div class="k"><b>Kick / snare</b></div><div class="v">4:1 · moderate</div></li>
+        <li><div class="k"><b>Vocals</b><small>Kevin especially</small></div><div class="v">3:1 · 3–5 dB GR</div></li>
+        <li><div class="k"><b>Main LR — glue only</b><small>Do not smash it.</small></div><div class="v">2:1 · 2–3 dB max</div></li>
+      </ul>
+
+      <div class="clip">
+        <div class="silk">▲ Clip — watch the LIMIT LEDs</div>
+        <p class="o-nosub">The 612s each have one. Flickering on peaks is fine. <strong>Lit steadily means you have already lost.</strong> The fix is upstream — filters, EQ, compression — <strong>not more gain.</strong></p>
+        <p class="o-sub">The 612s <em>and the sub</em> each have one. Flickering on peaks is fine. <strong>Lit steadily means you have already lost.</strong> The fix is upstream — filters, EQ, compression — <strong>not more gain.</strong></p>
+        <p class="o-sub">If it's the <strong>sub's</strong> limiter that's pinned, don't reach for the sub's level knob. Compress the bass harder and check that nothing below 90 Hz is arriving from channels that shouldn't have any.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section class="sec" id="s6">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">06</span> · Soundcheck</div>
+      <h2>Tune the Room</h2>
+      <p>100-band RTA on every channel and bus EQ, plus a 31-band GEQ on the Main LR. The only thing you dial on site.</p>
+    </div>
+    <div class="sec-bd">
+      <ul class="check">
+        <li><input type="checkbox" id="c9"><label for="c9"><b>Run a familiar track</b> through the PA at gig volume.</label></li>
+        <li><input type="checkbox" id="c10"><label for="c10"><b>Walk the room with the tablet.</b> <span class="bad">Ears out.</span> You cannot hear the room through IEMs.</label></li>
+        <li><input type="checkbox" id="c11"><label for="c11"><b>Find the one or two worst resonances.</b> In a bar it's almost always <span class="val">100–250 Hz</span>.</label></li>
+        <li class="o-sub"><input type="checkbox" id="c11s"><label for="c11s"><b>Now check <span class="val">40–80 Hz</span> too.</b> Room modes down there were invisible without a sub. They aren't any more — a bar with a bad 60 Hz mode will boom, and the RTA will show it.</label></li>
+        <li class="o-sub"><input type="checkbox" id="c11t"><label for="c11t"><b>Check the crossover region, <span class="val">~90 Hz</span>.</b> A dip there is your phase telling you it's wrong. Go back to §01b and flip it.</label></li>
+        <li><input type="checkbox" id="c12"><label for="c12"><b>Notch them narrow on the Main LR.</b> <span class="val">Cut, don't boost.</span></label></li>
+        <li><input type="checkbox" id="c12b"><label for="c12b"><b>Turn <span class="val">RTA → Follow</span> OFF.</b> It's a soundcheck tool. Live, you don't want the analyser chasing whatever channel you happen to tap.</label></li>
+        <li><input type="checkbox" id="c13"><label for="c13"><b>Then stop.</b> Save it and leave it alone. Riding faders from stage during the set makes it worse every time — you're correcting for something you can't hear.</label></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 07 -->
+  <section class="sec" id="s7">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">07</span> · Don't do this twice</div>
+      <h2>Save It</h2>
+      <p>Scope your scenes or they'll undo your afternoon.</p>
+    </div>
+    <div class="sec-bd">
+      <ul class="check">
+        <li class="o-nosub"><input type="checkbox" id="c14"><label for="c14"><b>Save as <span class="val">PA / No Sub</span></b>, alongside Practice and Gig.</label></li>
+        <li class="o-sub"><input type="checkbox" id="c14s"><label for="c14s"><b>Save as <span class="val">PA / With Sub</span></b>, alongside Practice, Gig, and PA / No Sub.</label></li>
+        <li><input type="checkbox" id="c15"><label for="c15"><b>Safe / never recalled:</b> head amp gains, Main LR room EQ, phantom.</label></li>
+        <li><input type="checkbox" id="c16"><label for="c16"><b>Recalled:</b> mutes, faders, channel EQ + comp, sends, FX.</label></li>
+      </ul>
+      <div class="why">
+        Scenes recall <b>preamp gain</b> by default. Recall a quiet scene after you've gained up for a loud room and you'll undo everything. Room tuning must survive every scene change — that's the whole point.<br><br>
+        <b>Subless is not a temporary state.</b> Wedding cocktail hours, dinner sets, and ceremony coverage all run tops-only. Both scenes stay in the desk permanently.
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <b>EON612</b> — 12" + 1" compression driver · 1,000 W peak · 48 Hz–20 kHz (−10 dB) · 57 Hz–20 kHz (−3 dB) · 126 dB max SPL · 100°×60° · 33 lb<br>
+    <b>Rear panel presets</b> — Main · Monitor · Speech · Sub (Sub = 100 Hz HPF — never used)<br>
+    <b>Sub</b> — Outputs mode XOVER, crossover 90 Hz, phase by ear. No delay.<br>
+    <b>XR18</b> — per-channel low-cut (12 dB/oct) + 4-band PEQ · Main LR &amp; 6 aux: 6-band PEQ / 31-band GEQ · 100-band RTA<br><br>
+    Low E is 41.2 Hz. Without the sub, the speaker is 10 dB down there. With it, you finally get it.
+  </footer>
+
+</main>
+
+<script>
+  function setMode(m){
+    document.body.className = 'm-' + m;
+    document.getElementById('b-nosub').classList.toggle('on', m === 'nosub');
+    document.getElementById('b-sub').classList.toggle('on', m === 'sub');
+    paint();
+  }
+  function paint(){
+    var all = document.querySelectorAll('ul.check input[type=checkbox]');
+    var shown = [], done = 0;
+    all.forEach(function(b){
+      if (b.offsetParent !== null) { shown.push(b); if (b.checked) done++; }
+    });
+    var meter = document.getElementById('meter');
+    meter.textContent = done + '/' + shown.length;
+    meter.style.color = (shown.length && done === shown.length)
+      ? 'var(--attn)'
+      : (done === 0 ? 'var(--dim)' : 'var(--signal)');
+  }
+  document.querySelectorAll('ul.check input[type=checkbox]').forEach(function(b){
+    b.addEventListener('change', paint);
+  });
+  paint();
+</script>
+
+</body>
+</html>

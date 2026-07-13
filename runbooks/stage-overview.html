@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Stage Overview — 6-piece, self-contained PA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --deep:#0e1013; --panel:#15181c; --raised:#1c2127;
+    --rule:#2b333b; --rule-soft:#21272d;
+    --signal:#43c46b; --attn:#ffb02e; --clip:#ff4b4b;
+    --text:#e4e8ec; --label:#7d8792; --dim:#59626c;
+    --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans:"Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; scroll-padding-top:100px; }
+  body{
+    background:var(--deep); color:var(--text); font-family:var(--sans);
+    font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased; padding-bottom:5rem;
+  }
+  .silk{
+    font-family:var(--mono); font-weight:700; font-size:.62rem;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--dim);
+  }
+
+  .mast{
+    border-bottom:1px solid var(--rule);
+    background:linear-gradient(180deg,#191d22 0%,var(--panel) 100%);
+    padding:1.6rem 1.15rem 1.15rem;
+  }
+  .mast h1{
+    font-family:var(--mono); font-weight:800;
+    font-size:clamp(1.35rem,5.4vw,2rem); letter-spacing:-.02em;
+    line-height:1.12; text-transform:uppercase; margin:.5rem 0 .55rem;
+  }
+  .mast h1 em{ font-style:normal; color:var(--attn); }
+  .mast .sub{ color:var(--label); font-size:.9rem; max-width:58ch; }
+  .rig{ display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.95rem; }
+  .chip{
+    font-family:var(--mono); font-size:.66rem; font-weight:500; letter-spacing:.05em;
+    padding:.3rem .5rem; border-radius:3px; background:var(--raised);
+    border:1px solid var(--rule); color:var(--label); white-space:nowrap;
+  }
+  .chip.hot{ border-color:rgba(255,176,46,.4); color:var(--attn); }
+
+  .nav{
+    position:sticky; top:0; z-index:20;
+    background:rgba(14,16,19,.93); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--rule);
+    display:flex; gap:.3rem; overflow-x:auto;
+    padding:.5rem .6rem .5rem 1.15rem;
+    scrollbar-width:none; -ms-overflow-style:none;
+  }
+  .nav::-webkit-scrollbar{ display:none; }
+  .nav a{
+    font-family:var(--mono); font-size:.7rem; font-weight:700; letter-spacing:.06em;
+    color:var(--label); text-decoration:none; padding:.45rem .55rem;
+    border-radius:4px; border:1px solid transparent; white-space:nowrap;
+    min-height:34px; display:flex; align-items:center;
+  }
+  .nav a:hover,.nav a:focus-visible{ color:var(--text); background:var(--raised); border-color:var(--rule); }
+
+  main{ padding:0 1.15rem; max-width:860px; margin:0 auto; }
+
+  .sec{ border:1px solid var(--rule); background:var(--panel); border-radius:8px; margin-top:1.4rem; overflow:hidden; }
+  .sec-hd{ padding:1rem 1.05rem .85rem; border-bottom:1px solid var(--rule-soft); background:var(--raised); }
+  .sec-hd h2{
+    font-family:var(--mono); font-weight:800; font-size:1.02rem;
+    text-transform:uppercase; margin-top:.35rem; line-height:1.25;
+  }
+  .sec-hd p{ color:var(--label); font-size:.85rem; margin-top:.35rem; }
+  .sec-bd{ padding:1.05rem; }
+
+  svg{ display:block; width:100%; height:auto; }
+
+  .key{ display:flex; flex-wrap:wrap; gap:1.1rem; margin-top:.9rem; padding-top:.85rem; border-top:1px solid var(--rule-soft); }
+  .key span{ display:flex; align-items:center; gap:.45rem; font-size:.76rem; color:var(--label); }
+  .key i{ width:12px; height:12px; border-radius:3px; display:block; }
+  .key i.dash{ width:18px; height:0; border-top:1.5px dashed var(--signal); border-radius:0; }
+
+  table{ width:100%; border-collapse:collapse; font-size:.86rem; }
+  th{
+    font-family:var(--mono); font-size:.6rem; font-weight:700; letter-spacing:.11em;
+    text-transform:uppercase; color:var(--dim); text-align:left;
+    padding:0 .6rem .5rem 0; border-bottom:1px solid var(--rule);
+  }
+  td{ padding:.52rem .6rem .52rem 0; border-bottom:1px solid var(--rule-soft); vertical-align:top; }
+  tr:last-child td{ border-bottom:0; }
+  td.n{ font-family:var(--mono); font-weight:700; color:var(--attn); white-space:nowrap; width:1%; }
+  td.g{ color:var(--label); font-size:.8rem; }
+  td.amp{ font-family:var(--mono); font-weight:700; color:var(--attn); text-align:right; white-space:nowrap; }
+  tr.total td{ border-top:1px solid var(--rule); border-bottom:0; padding-top:.65rem; font-weight:600; }
+  tr.total td.amp{ color:var(--clip); font-size:1rem; }
+  tr.spare td{ color:var(--dim); }
+  tr.spare td.n{ color:var(--dim); }
+
+  ul.check{ list-style:none; }
+  ul.check li{ display:flex; gap:.7rem; align-items:flex-start; padding:.62rem 0; border-bottom:1px solid var(--rule-soft); }
+  ul.check li:last-child{ border-bottom:0; padding-bottom:0; }
+  ul.check li:first-child{ padding-top:0; }
+  ul.check input[type=checkbox]{
+    appearance:none; -webkit-appearance:none; flex:0 0 auto;
+    width:22px; height:22px; margin-top:2px; border:1.5px solid var(--rule);
+    border-radius:4px; background:var(--deep); cursor:pointer; position:relative;
+  }
+  ul.check input[type=checkbox]:focus-visible{ outline:2px solid var(--attn); outline-offset:2px; }
+  ul.check input[type=checkbox]:checked{ background:var(--signal); border-color:var(--signal); }
+  ul.check input[type=checkbox]:checked::after{
+    content:""; position:absolute; left:7px; top:3px; width:5px; height:10px;
+    border:solid #0e1013; border-width:0 2px 2px 0; transform:rotate(45deg);
+  }
+  ul.check label{ cursor:pointer; flex:1; font-size:.94rem; }
+  ul.check input:checked + label{ color:var(--dim); }
+  ul.check input:checked + label b{ color:var(--dim); }
+  ul.check label b{ font-weight:600; }
+  ul.check label .val{ font-family:var(--mono); font-weight:700; color:var(--attn); }
+  ul.check input:checked + label .val{ color:var(--dim); }
+
+  .seq{ display:grid; gap:.5rem; }
+  .seqrow{
+    display:grid; grid-template-columns:auto 1fr; gap:.8rem; align-items:center;
+    background:var(--deep); border:1px solid var(--rule-soft);
+    border-left:3px solid var(--signal); border-radius:0 5px 5px 0; padding:.7rem .85rem;
+  }
+  .seqrow.off{ border-left-color:var(--clip); }
+  .seqrow .lbl{
+    font-family:var(--mono); font-weight:800; font-size:.68rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--signal); white-space:nowrap;
+  }
+  .seqrow.off .lbl{ color:var(--clip); }
+  .seqrow .steps{ font-family:var(--mono); font-weight:700; font-size:.84rem; }
+  .seqrow .steps span{ color:var(--dim); font-weight:400; }
+
+  .clip{
+    border:1px solid var(--clip); border-left-width:3px; background:rgba(255,75,75,.06);
+    border-radius:0 5px 5px 0; padding:.85rem .95rem; margin:1rem 0;
+  }
+  .clip .silk{ color:var(--clip); }
+  .clip p{ font-size:.9rem; margin-top:.4rem; }
+  .clip p + p{ margin-top:.55rem; }
+  .clip strong{ color:var(--clip); font-weight:700; }
+  .clip code{ font-family:var(--mono); font-size:.85em; font-weight:700; color:var(--attn); }
+
+  .why{ border-left:2px solid var(--rule); padding-left:.85rem; margin-top:1rem; color:var(--label); font-size:.855rem; line-height:1.62; }
+  .why b{ color:var(--text); font-weight:600; }
+  .why code{ font-family:var(--mono); font-size:.88em; color:var(--attn); font-weight:700; }
+
+  .ask{ display:grid; gap:.5rem; }
+  .askrow{
+    display:flex; gap:.7rem; align-items:flex-start;
+    background:var(--deep); border:1px solid var(--rule-soft);
+    border-radius:5px; padding:.75rem .85rem; font-size:.9rem;
+  }
+  .askrow .n{ font-family:var(--mono); font-weight:800; color:var(--attn); font-size:.8rem; flex:0 0 auto; margin-top:.1rem; }
+
+  footer{ margin-top:2rem; padding:1.2rem 0 0; border-top:1px solid var(--rule-soft); color:var(--dim); font-size:.78rem; line-height:1.65; }
+  footer b{ color:var(--label); font-weight:600; }
+
+  @media (max-width:420px){
+    main{ padding:0 .8rem; }
+    .mast{ padding:1.3rem .8rem 1rem; }
+    .nav{ padding-left:.8rem; }
+    table{ font-size:.8rem; }
+  }
+  @media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } }
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="silk">Tech sheet · six-piece classic rock</div>
+  <h1>Stage<br><em>Overview</em></h1>
+  <p class="sub">Fully self-contained. We bring the PA, the console, and all monitoring. There are no wedges on this stage — every player is on in-ears. All we need from the room is a floor and two circuits.</p>
+  <div class="rig">
+    <span class="chip">2× JBL EON612</span>
+    <span class="chip">1× powered sub</span>
+    <span class="chip">Behringer XR18</span>
+    <span class="chip">6× IEM — no wedges</span>
+    <span class="chip hot">~12 A total</span>
+  </div>
+</header>
+
+<nav class="nav">
+  <a href="#plot">PLOT</a>
+  <a href="#inputs">INPUTS</a>
+  <a href="#mon">MONITORS</a>
+  <a href="#power">POWER</a>
+  <a href="#seq">SEQUENCE</a>
+  <a href="#ask">VENUE</a>
+</nav>
+
+<main>
+
+  <!-- PLOT -->
+  <section class="sec" id="plot">
+    <div class="sec-hd">
+      <div class="silk">Top-down · audience at the bottom</div>
+      <h2>Stage Plot</h2>
+      <p>Guitars front, rhythm section back. Both tops sit downstage of every vocal mic.</p>
+    </div>
+    <div class="sec-bd">
+
+      <svg viewBox="0 0 680 400" role="img" xmlns="http://www.w3.org/2000/svg">
+        <title>Stage plot for a six-piece band</title>
+        <desc>Back line from left: rack, Dan on bass, Robert on drums, Rob on keys. Front line: Jamie on guitar, Kevin on lead vocals, Pappy on guitar. Two EON612 tops on poles and a centre subwoofer sit downstage of the band, facing the audience.</desc>
+
+        <rect x="40" y="30" width="600" height="210" rx="14" fill="none" stroke="#2b333b" stroke-width="1" stroke-dasharray="5 4"/>
+        <text x="54" y="52" fill="#59626c" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1.6">STAGE — ALL IEM, NO WEDGES</text>
+
+        <path d="M121 122 L121 136 L559 136 L559 122" fill="none" stroke="#43c46b" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.8"/>
+        <path d="M413 136 L413 122" fill="none" stroke="#43c46b" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.8"/>
+
+        <g>
+          <rect x="58" y="68" width="126" height="54" rx="6" fill="#241d10" stroke="#ffb02e" stroke-width="1"/>
+          <text x="121" y="90" text-anchor="middle" fill="#ffb02e" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">RACK</text>
+          <text x="121" y="107" text-anchor="middle" fill="#8a7448" font-family="Archivo, sans-serif" font-size="11">XR18 · IEM tx</text>
+        </g>
+
+        <g>
+          <rect x="204" y="68" width="126" height="54" rx="6" fill="#1c2127" stroke="#2b333b" stroke-width="1"/>
+          <text x="267" y="90" text-anchor="middle" fill="#e4e8ec" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">DAN</text>
+          <text x="267" y="107" text-anchor="middle" fill="#7d8792" font-family="Archivo, sans-serif" font-size="11">Bass + vox</text>
+        </g>
+
+        <g>
+          <rect x="350" y="68" width="126" height="54" rx="6" fill="#1c2127" stroke="#2b333b" stroke-width="1"/>
+          <text x="413" y="90" text-anchor="middle" fill="#e4e8ec" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">ROBERT</text>
+          <text x="413" y="107" text-anchor="middle" fill="#7d8792" font-family="Archivo, sans-serif" font-size="11">Drums</text>
+        </g>
+
+        <g>
+          <rect x="496" y="68" width="126" height="54" rx="6" fill="#1c2127" stroke="#2b333b" stroke-width="1"/>
+          <text x="559" y="90" text-anchor="middle" fill="#e4e8ec" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">ROB</text>
+          <text x="559" y="107" text-anchor="middle" fill="#7d8792" font-family="Archivo, sans-serif" font-size="11">Keys ×2</text>
+        </g>
+
+        <g>
+          <rect x="58" y="150" width="160" height="54" rx="6" fill="#1c2127" stroke="#2b333b" stroke-width="1"/>
+          <text x="138" y="172" text-anchor="middle" fill="#e4e8ec" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">JAMIE</text>
+          <text x="138" y="189" text-anchor="middle" fill="#7d8792" font-family="Archivo, sans-serif" font-size="11">Guitar</text>
+        </g>
+
+        <g>
+          <rect x="260" y="150" width="160" height="54" rx="6" fill="#1c2127" stroke="#2b333b" stroke-width="1"/>
+          <text x="340" y="172" text-anchor="middle" fill="#e4e8ec" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">KEVIN</text>
+          <text x="340" y="189" text-anchor="middle" fill="#7d8792" font-family="Archivo, sans-serif" font-size="11">Lead vox</text>
+        </g>
+
+        <g>
+          <rect x="462" y="150" width="160" height="54" rx="6" fill="#1c2127" stroke="#2b333b" stroke-width="1"/>
+          <text x="542" y="172" text-anchor="middle" fill="#e4e8ec" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">PAPPY</text>
+          <text x="542" y="189" text-anchor="middle" fill="#7d8792" font-family="Archivo, sans-serif" font-size="11">Guitar + vox</text>
+        </g>
+
+        <g>
+          <rect x="58" y="272" width="160" height="54" rx="6" fill="#12241a" stroke="#43c46b" stroke-width="1"/>
+          <text x="138" y="294" text-anchor="middle" fill="#43c46b" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">EON612 L</text>
+          <text x="138" y="311" text-anchor="middle" fill="#4d7a5c" font-family="Archivo, sans-serif" font-size="11">On a pole</text>
+        </g>
+
+        <g>
+          <rect x="260" y="272" width="160" height="54" rx="6" fill="#12241a" stroke="#43c46b" stroke-width="1"/>
+          <text x="340" y="294" text-anchor="middle" fill="#43c46b" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">SUBWOOFER</text>
+          <text x="340" y="311" text-anchor="middle" fill="#4d7a5c" font-family="Archivo, sans-serif" font-size="11">Centre, on the floor</text>
+        </g>
+
+        <g>
+          <rect x="462" y="272" width="160" height="54" rx="6" fill="#12241a" stroke="#43c46b" stroke-width="1"/>
+          <text x="542" y="294" text-anchor="middle" fill="#43c46b" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">EON612 R</text>
+          <text x="542" y="311" text-anchor="middle" fill="#4d7a5c" font-family="Archivo, sans-serif" font-size="11">On a pole</text>
+        </g>
+
+        <path d="M138 330 L138 348" stroke="#59626c" stroke-width="1.2" fill="none"/>
+        <path d="M133 342 L138 349 L143 342" stroke="#59626c" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M340 330 L340 348" stroke="#59626c" stroke-width="1.2" fill="none"/>
+        <path d="M335 342 L340 349 L345 342" stroke="#59626c" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M542 330 L542 348" stroke="#59626c" stroke-width="1.2" fill="none"/>
+        <path d="M537 342 L542 349 L547 342" stroke="#59626c" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+
+        <text x="340" y="372" text-anchor="middle" fill="#59626c" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1.6">AUDIENCE</text>
+      </svg>
+
+      <div class="key">
+        <span><i style="background:#ffb02e"></i> Rack — Dan mixes from here</span>
+        <span><i style="background:#43c46b"></i> PA</span>
+        <span><i class="dash"></i> Wired IEM runs</span>
+      </div>
+
+      <div class="why">
+        <b>Both tops are downstage of every vocal mic.</b> That geometry is why feedback suppression stays switched off — no microphone is being asked to reject a speaker behind it.<br><br>
+        <b>The sub is dead centre.</b> Correct for a single sub, and it's the spot the second one stacks onto for a cardioid array once outdoor gigs start.
+      </div>
+    </div>
+  </section>
+
+  <!-- INPUTS -->
+  <section class="sec" id="inputs">
+    <div class="sec-hd">
+      <div class="silk">Split 24 ways · direct leg available to house</div>
+      <h2>Input List</h2>
+      <p>Thirteen channels of sixteen. Overheads are summed and phantom-fed upstream of the split.</p>
+    </div>
+    <div class="sec-bd">
+      <table>
+        <thead><tr><th>Ch</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="n">1</td><td>Kick</td><td class="g">Dynamic</td></tr>
+          <tr><td class="n">2</td><td>Snare</td><td class="g">Dynamic</td></tr>
+          <tr><td class="n">3</td><td>Overheads — mono</td><td class="g">Condenser pair, summed. We supply 48 V — it passes through the split to your side too.</td></tr>
+          <tr><td class="n">4</td><td>Bass DI</td><td class="g">SansAmp XLR. Amp on stage is not mic'd.</td></tr>
+          <tr><td class="n">5</td><td>Guitar — Jamie</td><td class="g"></td></tr>
+          <tr><td class="n">6</td><td>Guitar — Pappy</td><td class="g"></td></tr>
+          <tr><td class="n">7</td><td>Keys 1 — Rob</td><td class="g"></td></tr>
+          <tr><td class="n">8</td><td>Keys 2 — Rob</td><td class="g">Carries synth bass on some songs</td></tr>
+          <tr><td class="n">9</td><td>Vox — Kevin</td><td class="g">Lead</td></tr>
+          <tr><td class="n">10</td><td>Vox — Dan</td><td class="g"></td></tr>
+          <tr><td class="n">11</td><td>Vox — Rob</td><td class="g"></td></tr>
+          <tr><td class="n">12</td><td>Vox — Pappy</td><td class="g"></td></tr>
+          <tr><td class="n">13</td><td>Ambience mic</td><td class="g">Into in-ear mixes only. Not in the house.</td></tr>
+          <tr class="spare"><td class="n">14–16</td><td>Spare</td><td class="g"></td></tr>
+        </tbody>
+      </table>
+
+      <div class="clip">
+        <div class="silk">▲ Phantom power is shared</div>
+        <p>The split is a <strong>passive hardwired Y</strong> — no transformers. That means <strong>48 V passes to both consoles when either one supplies it.</strong></p>
+        <p>We phantom the overhead pair. If you'd rather supply it from your side, say so and we'll switch ours off — but <strong>one of us needs to, and only one of us should.</strong> If anyone on this stage is running a ribbon mic, tell us before anything gets switched on.</p>
+      </div>
+
+      <div class="why">
+        <b>24-channel passive split, send only.</b> One leg is yours — take it and use your own preamps; you'll get a clean mic-level feed with none of our gain, EQ or compression on it. The other feeds our XR18.<br><br>
+        <b>No transformers means no ground lifts.</b> If a channel hums, it's a ground loop between our rack and your console. We carry inline isolators — flag it and we'll drop one in.
+      </div>
+    </div>
+  </section>
+
+  <!-- MONITORS -->
+  <section class="sec" id="mon">
+    <div class="sec-hd">
+      <div class="silk">No wedges · nothing on the floor</div>
+      <h2>Monitoring</h2>
+      <p>Six aux buses, six ears. Wireless to the four who move; a cable to the two who don't.</p>
+    </div>
+    <div class="sec-bd">
+      <table>
+        <thead><tr><th>Aux</th><th>Player</th><th>Feed</th></tr></thead>
+        <tbody>
+          <tr><td class="n">1</td><td>Kevin</td><td class="g">Phenyx Pro — wireless</td></tr>
+          <tr><td class="n">2</td><td>Jamie</td><td class="g">Phenyx Pro — wireless</td></tr>
+          <tr><td class="n">3</td><td>Pappy</td><td class="g">Phenyx Pro — wireless</td></tr>
+          <tr><td class="n">4</td><td>Dan</td><td class="g">Phenyx Pro — wireless</td></tr>
+          <tr><td class="n">5</td><td>Robert</td><td class="g">Wired run + belt-pack headphone amp</td></tr>
+          <tr><td class="n">6</td><td>Rob</td><td class="g">Wired run + belt-pack headphone amp</td></tr>
+        </tbody>
+      </table>
+
+      <div class="clip">
+        <div class="silk">▲ The wired runs are line level</div>
+        <p>An XR18 aux output is <strong>line level, not headphone level.</strong> Robert and Rob each need a belt-pack headphone amp at the far end of the run — a <code>Behringer P1</code> or equivalent. Without one they get a whisper and assume the mix is broken.</p>
+      </div>
+
+      <div class="why">
+        <b>All six buses are spoken for.</b> There is no seventh mix. If a guest sits in and needs a wedge, someone gives up their ears for the song.
+      </div>
+    </div>
+  </section>
+
+  <!-- POWER -->
+  <section class="sec" id="power">
+    <div class="sec-hd">
+      <div class="silk">The number that gets us thrown out of bars</div>
+      <h2>Power</h2>
+      <p>Roughly 12 amps all-in. A 15 A circuit is only rated to 12 A continuous — we are exactly at the ceiling on one leg.</p>
+    </div>
+    <div class="sec-bd">
+      <table>
+        <thead><tr><th>Item</th><th>Notes</th><th style="text-align:right">Draw</th></tr></thead>
+        <tbody>
+          <tr><td>EON612 ×2</td><td class="g">~2 A each at real program levels</td><td class="amp">4 A</td></tr>
+          <tr><td>Subwoofer</td><td class="g">Continuous low end — the hungry one. Estimate; confirm against the plate.</td><td class="amp">~5 A</td></tr>
+          <tr><td>Rack</td><td class="g">XR18, IEM transmitter, sub-mixer, Ampeg</td><td class="amp">~3 A</td></tr>
+          <tr class="total"><td>Total</td><td class="g">Right at the 80% ceiling of a single 15 A circuit</td><td class="amp">~12 A</td></tr>
+        </tbody>
+      </table>
+
+      <div class="clip">
+        <div class="silk">▲ Clip — never share with lighting</div>
+        <p>A dimmer pack on the same leg as the rack produces a buzz <strong>you will never EQ out.</strong> Not with a ground lift, not with a notch filter. The only fix is a different circuit.</p>
+        <p>Same goes for beer coolers, ice machines, and HVAC compressors. Anything with a motor or a triac.</p>
+      </div>
+
+      <ul class="check">
+        <li><input type="checkbox" id="p1"><label for="p1"><b>Two circuits, minimum.</b> <span class="val">PA on one</span> (tops + sub, ~9 A), <span class="val">rack on the other</span> (~3 A).</label></li>
+        <li><input type="checkbox" id="p2"><label for="p2"><b>Confirm they're actually different circuits.</b> Two outlets on the same wall usually aren't. Ask, or trip-test before the room fills.</label></li>
+        <li><input type="checkbox" id="p3"><label for="p3"><b>Find the breaker panel before you need it.</b> Not at 10:40 pm in the dark.</label></li>
+        <li><input type="checkbox" id="p4"><label for="p4"><b>Proper extension cords — <span class="val">12 AWG</span>.</b> A thin consumer strip feeding a sub is a voltage sag and a fire hazard.</label></li>
+        <li><input type="checkbox" id="p5"><label for="p5"><b>Stagger the switch-on.</b> Powered speakers pull a large inrush current. Three at once can trip a healthy breaker.</label></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SEQUENCE -->
+  <section class="sec" id="seq">
+    <div class="sec-hd">
+      <div class="silk">Get this backwards once and everyone knows</div>
+      <h2>Power Sequence</h2>
+      <p>Sources come up first and go down last. Amps are the opposite.</p>
+    </div>
+    <div class="sec-bd">
+      <div class="seq">
+        <div class="seqrow">
+          <span class="lbl">Power on</span>
+          <span class="steps">Rack <span>→</span> Subwoofer <span>→</span> Tops</span>
+        </div>
+        <div class="seqrow off">
+          <span class="lbl">Power off</span>
+          <span class="steps">Tops <span>→</span> Subwoofer <span>→</span> Rack</span>
+        </div>
+      </div>
+
+      <div class="why">
+        <b>Why it matters:</b> a mixer powering up or down puts a DC thump on its outputs. If the speakers are already live, the room hears it — and so does the sub's woofer, at full excursion. Speakers are always the last thing on and the first thing off. <b>No exceptions, not even for a quick reboot.</b>
+      </div>
+    </div>
+  </section>
+
+  <!-- VENUE -->
+  <section class="sec" id="ask">
+    <div class="sec-hd">
+      <div class="silk">What we need from the room</div>
+      <h2>Venue Requirements</h2>
+      <p>Short list. That's the point.</p>
+    </div>
+    <div class="sec-bd">
+      <div class="ask">
+        <div class="askrow"><span class="n">01</span><span><b>Two 15 A circuits</b>, not shared with stage lighting, coolers, or HVAC.</span></div>
+        <div class="askrow"><span class="n">02</span><span><b>Roughly 16 ft × 10 ft</b> of stage or floor. We can compress if we have to.</span></div>
+        <div class="askrow"><span class="n">03</span><span><b>That's it.</b> We bring the PA, the subwoofer, the console, and all monitoring.</span></div>
+      </div>
+
+      <div class="why">
+        <b>No wedges, no monitor engineer, no stage volume.</b> Every player is on in-ears and the bass rig is a tactile monitor, not a sound source. The only thing the room hears is the PA, and we control it. If you have a house engineer, our splitter's direct leg is theirs — with their own preamps.
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <b>PA</b> — 2× JBL EON612 (12", 126 dB max SPL) + 1× powered subwoofer, 90 Hz crossover<br>
+    <b>Console</b> — Behringer XR18, mixed from stage via tablet<br>
+    <b>Split</b> — Seismic SARMSS-24x1515, 24 ch passive Y-split. No transformers, no ground lifts. Phantom passes both ways.<br>
+    <b>Monitoring</b> — Phenyx Pro quad wireless IEM (×4) + 2 wired runs. No wedges.<br><br>
+    Draw is ~12 A. Please don't put us on the lighting circuit.
+  </footer>
+
+</main>
+
+</body>
+</html>

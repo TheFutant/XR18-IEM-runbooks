@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>EQ &amp; FX Runbook — XR18</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --deep:#0e1013; --panel:#15181c; --raised:#1c2127;
+    --rule:#2b333b; --rule-soft:#21272d;
+    --signal:#43c46b; --attn:#ffb02e; --clip:#ff4b4b;
+    --text:#e4e8ec; --label:#7d8792; --dim:#59626c;
+    --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans:"Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; scroll-padding-top:150px; }
+  body{
+    background:var(--deep); color:var(--text); font-family:var(--sans);
+    font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased; padding-bottom:5rem;
+  }
+  body.m-sub .o-nosub{ display:none !important; }
+  body.m-nosub .o-sub{ display:none !important; }
+
+  .silk{ font-family:var(--mono); font-weight:700; font-size:.62rem; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); }
+
+  .mast{ border-bottom:1px solid var(--rule); background:linear-gradient(180deg,#191d22 0%,var(--panel) 100%); padding:1.6rem 1.15rem 1.15rem; }
+  .mast h1{ font-family:var(--mono); font-weight:800; font-size:clamp(1.35rem,5.4vw,2rem); letter-spacing:-.02em; line-height:1.12; text-transform:uppercase; margin:.5rem 0 .55rem; }
+  .mast h1 em{ font-style:normal; color:var(--attn); }
+  .mast .sub{ color:var(--label); font-size:.9rem; max-width:56ch; }
+  .rig{ display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.95rem; }
+  .chip0{ font-family:var(--mono); font-size:.66rem; font-weight:500; letter-spacing:.05em; padding:.3rem .5rem; border-radius:3px; background:var(--raised); border:1px solid var(--rule); color:var(--label); white-space:nowrap; }
+
+  .modebar{ position:sticky; top:0; z-index:30; background:rgba(14,16,19,.96); backdrop-filter:blur(10px); border-bottom:1px solid var(--rule); padding:.7rem 1.15rem; }
+  .modes{ display:flex; gap:.4rem; max-width:820px; margin:0 auto; }
+  .modes button{
+    flex:1; font-family:var(--mono); font-weight:800; font-size:.78rem;
+    letter-spacing:.09em; text-transform:uppercase;
+    background:var(--panel); color:var(--dim); border:1px solid var(--rule);
+    border-radius:6px; padding:.75rem .5rem; cursor:pointer; min-height:46px;
+    transition:color .12s, border-color .12s, background .12s;
+  }
+  .modes button:hover{ color:var(--label); border-color:var(--dim); }
+  .modes button:focus-visible{ outline:2px solid var(--attn); outline-offset:2px; }
+  .modes button.on{ background:#241d10; color:var(--attn); border-color:var(--attn); }
+
+  .nav{ position:sticky; top:61px; z-index:20; background:rgba(14,16,19,.93); backdrop-filter:blur(10px); border-bottom:1px solid var(--rule); display:flex; align-items:center; gap:.75rem; padding:.5rem .6rem .5rem 1.15rem; }
+  .nav-scroll{ display:flex; gap:.3rem; overflow-x:auto; flex:1; scrollbar-width:none; -ms-overflow-style:none; }
+  .nav-scroll::-webkit-scrollbar{ display:none; }
+  .nav-scroll a{ font-family:var(--mono); font-size:.7rem; font-weight:700; letter-spacing:.06em; color:var(--label); text-decoration:none; padding:.45rem .55rem; border-radius:4px; border:1px solid transparent; white-space:nowrap; min-height:34px; display:flex; align-items:center; }
+  .nav-scroll a:hover,.nav-scroll a:focus-visible{ color:var(--text); background:var(--raised); border-color:var(--rule); }
+  .meter{ font-family:var(--mono); font-size:.68rem; font-weight:700; color:var(--dim); white-space:nowrap; padding-right:.5rem; letter-spacing:.04em; }
+
+  main{ padding:0 1.15rem; max-width:820px; margin:0 auto; }
+
+  .sec{ border:1px solid var(--rule); background:var(--panel); border-radius:8px; margin-top:1.4rem; overflow:hidden; }
+  .sec-hd{ padding:1rem 1.05rem .85rem; border-bottom:1px solid var(--rule-soft); background:var(--raised); }
+  .sec-hd .num{ color:var(--attn); }
+  .sec-hd h2{ font-family:var(--mono); font-weight:800; font-size:1.02rem; text-transform:uppercase; margin-top:.35rem; line-height:1.25; }
+  .sec-hd p{ color:var(--label); font-size:.85rem; margin-top:.35rem; }
+  .sec-bd{ padding:1.05rem; }
+
+  .bound{ border:1px solid var(--rule); border-left:3px solid var(--signal); background:rgba(67,196,107,.05); border-radius:0 6px 6px 0; padding:.9rem 1rem; margin-top:1.4rem; }
+  .bound .silk{ color:var(--signal); }
+  .bound p{ font-size:.88rem; margin-top:.45rem; color:var(--label); }
+  .bound b{ color:var(--text); font-weight:600; }
+  .bound code{ font-family:var(--mono); font-size:.86em; font-weight:700; color:var(--attn); }
+
+  .item{ display:flex; gap:.75rem; align-items:flex-start; background:var(--deep); border:1px solid var(--rule-soft); border-radius:7px; padding:.85rem .9rem; margin-bottom:.55rem; }
+  .item:last-child{ margin-bottom:0; }
+  .item input[type=checkbox]{
+    appearance:none; -webkit-appearance:none; flex:0 0 auto;
+    width:22px; height:22px; margin-top:2px; border:1.5px solid var(--rule);
+    border-radius:4px; background:var(--panel); cursor:pointer; position:relative;
+  }
+  .item input[type=checkbox]:focus-visible{ outline:2px solid var(--attn); outline-offset:2px; }
+  .item input[type=checkbox]:checked{ background:var(--signal); border-color:var(--signal); }
+  .item input[type=checkbox]:checked::after{ content:""; position:absolute; left:7px; top:3px; width:5px; height:10px; border:solid #0e1013; border-width:0 2px 2px 0; transform:rotate(45deg); }
+  .item .bd{ flex:1; min-width:0; }
+  .item.done{ opacity:.45; }
+
+  .tag{ display:inline-block; font-family:var(--mono); font-size:.58rem; font-weight:700; letter-spacing:.11em; text-transform:uppercase; color:var(--dim); border:1px solid var(--rule); border-radius:3px; padding:.1rem .38rem; margin-bottom:.4rem; }
+  .item .ttl{ font-weight:600; font-size:.93rem; line-height:1.35; }
+  .item .who{ color:var(--dim); font-size:.76rem; margin-top:.15rem; }
+
+  .chips{ display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.55rem; }
+  .c{ font-family:var(--mono); font-size:.7rem; font-weight:700; border-radius:4px; padding:.22rem .45rem; border:1px solid var(--rule); color:var(--label); background:var(--panel); white-space:nowrap; }
+  .c.boost{ color:var(--attn); border-color:rgba(255,176,46,.4); }
+  .c.cut{ color:var(--signal); border-color:rgba(67,196,107,.4); }
+  .c.flat{ color:var(--clip); border-color:rgba(255,75,75,.4); }
+  .c.p{ color:var(--label); }
+
+  .why{ border-left:2px solid var(--rule); padding-left:.85rem; margin-top:1rem; color:var(--label); font-size:.855rem; line-height:1.62; }
+  .why b{ color:var(--text); font-weight:600; }
+  .why code{ font-family:var(--mono); font-size:.88em; color:var(--attn); font-weight:700; }
+
+  .clip{ border:1px solid var(--clip); border-left-width:3px; background:rgba(255,75,75,.06); border-radius:0 5px 5px 0; padding:.85rem .95rem; margin:1rem 0; }
+  .clip .silk{ color:var(--clip); }
+  .clip p{ font-size:.9rem; margin-top:.4rem; }
+  .clip p + p{ margin-top:.55rem; }
+  .clip strong{ color:var(--clip); font-weight:700; }
+  .clip code{ font-family:var(--mono); font-size:.85em; font-weight:700; color:var(--attn); }
+
+  footer{ margin-top:2rem; padding:1.2rem 0 0; border-top:1px solid var(--rule-soft); color:var(--dim); font-size:.78rem; line-height:1.65; }
+  footer b{ color:var(--label); font-weight:600; }
+
+  @media (max-width:420px){
+    main{ padding:0 .8rem; } .mast{ padding:1.3rem .8rem 1rem; }
+    .nav{ padding-left:.8rem; } .modebar{ padding:.6rem .8rem; }
+  }
+  @media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } *{ transition:none !important; } }
+</style>
+</head>
+<body class="m-nosub">
+
+<header class="mast">
+  <div class="silk">Companion to the PA runbook · tone, not system</div>
+  <h1>EQ &amp; FX<br><em>Runbook</em></h1>
+  <p class="sub">Per-channel EQ, compression, and reverb on the XR18. Every number is a <b style="color:var(--attn)">starting point</b> — sweep and adjust by ear once it's playing at real volume.</p>
+  <div class="rig">
+    <span class="chip0">4-band PEQ per channel</span>
+    <span class="chip0">SM58-style dynamics</span>
+    <span class="chip0">2× EON612</span>
+  </div>
+</header>
+
+<div class="modebar">
+  <div class="modes">
+    <button id="b-nosub" class="on" onclick="setMode('nosub')">No sub</button>
+    <button id="b-sub" onclick="setMode('sub')">With sub</button>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-scroll">
+    <a href="#s0">00 GAIN</a>
+    <a href="#s1">01 EQ</a>
+    <a href="#s2">02 COMP</a>
+    <a href="#s3">03 FX</a>
+    <a href="#s4">04 SAVE</a>
+  </div>
+  <div class="meter" id="meter">0/0</div>
+</nav>
+
+<main>
+
+  <div class="bound">
+    <div class="silk">▲ What this document does not own</div>
+    <p><b>Low cuts / HPF</b> and the <b>main-bus room EQ</b> live in the <code>PA Runbook</code>. They are not set here, and no number in this document should contradict one there.</p>
+    <p>One filter, one owner. That's how the two documents stay in agreement.</p>
+  </div>
+
+  <div class="bound" style="border-left-color:var(--attn); background:rgba(255,176,46,.05)">
+    <div class="silk" style="color:var(--attn)">▲ The toggle only moves two things</div>
+    <p>Adding a subwoofer changes the <b>kick</b> and <b>bass</b> low-end EQ, and nothing else. Snare, overheads, guitars, keys, vocals, every compressor and both reverbs are about the <em>source</em>, not the reproduction system. They don't care what speakers you own.</p>
+  </div>
+
+  <!-- 00 GAIN -->
+  <section class="sec" id="s0">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">00</span> · Do this first, and then do part of it again</div>
+      <h2>Gain Staging</h2>
+      <p>Nothing below this line means anything until the gain is right. Compressor thresholds in particular are pure fiction without it.</p>
+    </div>
+    <div class="sec-bd">
+
+      <div class="clip">
+        <div class="silk">▲ Clip — there are FOUR dB scales in one channel strip</div>
+        <p>They sit inches apart, they're all labelled in dB, and they measure completely different things. Read the wrong one and you'll set your gain 7 dB hot without knowing it.</p>
+        <p><code>Preamp gain</code> — a slider, <code>−12</code> to <code>+60</code>. <strong>The knob you turn.</strong><br>
+        <code>Channel meter</code> — counts <em>up</em> toward 0 dBFS. <strong>The thing you watch.</strong><br>
+        <code>Fader</code> — cut/boost, unity at 0. Where you build the mix. Says nothing about signal level.<br>
+        <code>GR meter</code> — counts <em>down</em>, <code>−1</code> to <code>−19</code>. The compressor's output, not the channel's.</p>
+        <p><strong>Gain stage against the channel meter. Nothing else.</strong></p>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="g1">
+        <div class="bd">
+          <span class="tag">Step 1 — Set the gain</span>
+          <div class="ttl">Peaks at −12 to −10 dBFS</div>
+          <div class="chips">
+            <span class="c boost">−12 to −10 dBFS peak</span>
+            <span class="c flat">not −5</span>
+            <span class="c p">avg lands near −18 to −20</span>
+          </div>
+          <div class="who"><b>Play it like it's Friday.</b> Everyone sets their gain on a polite check-one-two and then gets buried the moment they actually perform. −5 dBFS peak is not headroom — one harder-than-usual note and you clip the converter, and digital clipping is a crack, not a warmth.</div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="g2">
+        <div class="bd">
+          <span class="tag">Step 2 — EQ</span>
+          <div class="ttl">Everything in §01 below</div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="g3">
+        <div class="bd">
+          <span class="tag">Step 3 — Set the gain AGAIN</span>
+          <div class="ttl">The step everyone skips</div>
+          <div class="chips">
+            <span class="c flat">EQ boosts add level</span>
+          </div>
+          <div class="who"><b>A +3 dB boost at 90 Hz makes the channel 3 dB hotter than when you staged it.</b> Your careful −12 dBFS peak is now −9. Go back to the preamp and take it out. This is not optional and it is not obvious — the meter you set is downstream of the EQ you just added.</div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="g4">
+        <div class="bd">
+          <span class="tag">Step 4 — Compressor threshold</span>
+          <div class="ttl">Now it means something</div>
+          <div class="who">See §02. Watch the GR meter, not the number on the knob.</div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="g5">
+        <div class="bd">
+          <span class="tag">Step 5 — Fader to unity</span>
+          <div class="ttl">Every channel. Then build the mix from there.</div>
+          <div class="who">If a fader later ends up wildly off — a guitar buried at −20, a vocal shoved to +8 — <b>that's a gain staging error, not a mix decision.</b> Starting everything at unity turns the fader bank into a diagnostic. Starting it anywhere else throws that away.</div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="g6">
+        <div class="bd">
+          <span class="tag">Housekeeping</span>
+          <div class="ttl">Set peak decay to ~2 seconds</div>
+          <div class="who">Settings → App. A sticky peak-hold marker captures your first bad note and then lies to you for the rest of the session. Auto-decay turns it into a live readout instead of a high-water mark.</div>
+        </div>
+      </div>
+
+      <div class="why">
+        <b>Reference — what it actually landed on for the bass:</b> SansAmp on the <b>instrument</b> setting (not line — the house engineer's mic pre expects mic level), preamp around <code>+5</code>, then back down after the 90 Hz lift went in. Compressor threshold ended at <code>−20.5</code> with <code>+2.0</code> makeup for ~4 dB of GR.<br><br>
+        Those numbers are <b>not</b> a target — they're a sanity check. If your threshold has to go to −40 before the GR meter moves, your gain is too low. If it compresses at −5, it's too hot.
+      </div>
+    </div>
+  </section>
+
+  <!-- 01 EQ -->
+  <section class="sec" id="s1">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">01</span> · 4 bands per channel</div>
+      <h2>EQ</h2>
+      <p><b>Q</b> is width. Low Q (0.8–1.2) is broad and musical. High Q (2+) is narrow and surgical. <b>Cut broad, boost narrow</b> — a broad cut sounds like a fix, a broad boost sounds like a mistake.</p>
+    </div>
+    <div class="sec-bd">
+
+      <div class="bound" style="margin-top:0; margin-bottom:1.1rem; border-left-color:var(--rule); background:transparent">
+        <div class="silk">If a value isn't written here</div>
+        <p>It's <code>Q 1.0</code>, <code>gain 0</code>, band off. That's the rule. The only exceptions in this document are the vocal <code>Q2.0</code> notch and the stacked Lo-Cut bands at <code>Q 0.7</code>.</p>
+        <p><b>And don't chase exact frequencies.</b> The XR18 quantizes EQ frequency to a fixed grid — ask for 50 and it lands on 50.8. That's a quarter of a semitone. It does not matter, and there is no setting that changes it.</p>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="e1">
+        <div class="bd">
+          <span class="tag">Kick</span>
+          <div class="ttl o-nosub">Punch, because thump isn't available</div>
+          <div class="ttl o-sub">Real thump — the body drops an octave</div>
+          <div class="chips o-nosub">
+            <span class="c boost">+3 dB @ 90 Hz · Q1.4</span>
+            <span class="c cut">−4 dB @ 400 Hz · Q1.0</span>
+            <span class="c boost">+3 dB @ 3.5 kHz · Q1.0</span>
+          </div>
+          <div class="chips o-sub">
+            <span class="c boost">+3 dB @ 60 Hz · Q1.4</span>
+            <span class="c cut">−4 dB @ 400 Hz · Q1.0</span>
+            <span class="c boost">+3 dB @ 3.5 kHz · Q1.0</span>
+          </div>
+          <div class="who o-nosub">Boost at 90, not 65 — the 612 is already −3 dB by 57 Hz. Asking it for 65 is asking for excursion, not sound.</div>
+          <div class="who o-sub">The sub owns 60 Hz now. This is the boost that makes the kick land in someone's chest.</div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="e2">
+        <div class="bd">
+          <span class="tag">Bass</span>
+          <div class="ttl o-nosub">Weight the 612 can actually radiate</div>
+          <div class="ttl o-sub">Get out of the sub's way</div>
+          <div class="chips o-nosub">
+            <span class="c boost">+3 dB @ 90 Hz · Q1.2</span>
+            <span class="c cut">−3 dB @ 350 Hz · Q1.0</span>
+            <span class="c boost">+2 dB @ 800 Hz · Q1.0</span>
+          </div>
+          <div class="chips o-sub">
+            <span class="c flat">Flatten the 90 Hz band</span>
+            <span class="c cut">−3 dB @ 350 Hz · Q1.0</span>
+            <span class="c boost">+2 dB @ 800 Hz · Q1.0</span>
+          </div>
+          <div class="who o-nosub">The 90 Hz lift is the 2nd harmonic of your low E. It's the only weight you're going to get.</div>
+          <div class="who o-sub">Leave the 90 Hz lift in and you're doubling up on top of the sub. Boomy, undefined — and you'll blame the sub.</div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="e3">
+        <div class="bd">
+          <span class="tag">Snare</span>
+          <div class="ttl">Body and crack</div>
+          <div class="chips">
+            <span class="c boost">+2 dB @ 200 Hz · Q1.2</span>
+            <span class="c cut">−2 dB @ 450 Hz · Q1.0</span>
+            <span class="c boost">+3 dB @ 4 kHz · Q1.0</span>
+          </div>
+          <div class="who">The 450 cut only if it's boxy. Sweep it.</div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="e4">
+        <div class="bd">
+          <span class="tag">Overheads — mono</span>
+          <div class="ttl">Cymbals <em>and toms</em> — there are no tom mics</div>
+          <div class="chips">
+            <span class="c cut">−2 dB @ 1.2 kHz · Q1.0</span>
+            <span class="c boost">+2 dB @ 9 kHz shelf</span>
+          </div>
+          <div class="who">Summed to mono in your sub-mixer, phantom fed upstream of the split. The 1.2k cut only if harsh. <b>Don't cut the low-mids here</b> — that's where the toms live, and this channel is the only place they exist.</div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="e5">
+        <div class="bd">
+          <span class="tag">Guitars — Pappy &amp; Jamie</span>
+          <div class="ttl">Same starting point on both</div>
+          <div class="chips">
+            <span class="c cut">−2 dB @ 350 Hz · Q1.0</span>
+            <span class="c boost">+2 dB @ 3 kHz · Q1.0</span>
+          </div>
+          <div class="who">If they're fighting each other, push one to 2.5k and the other to 3.5k. Don't stack them.</div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="e6">
+        <div class="bd">
+          <span class="tag">Keys — Rob ×2</span>
+          <div class="ttl">Leave flat unless it's masking</div>
+          <div class="chips">
+            <span class="c cut">−2 dB @ 300 Hz · Q1.0</span>
+            <span class="c p">only if competing with bass or vox</span>
+          </div>
+          <div class="who">Remember one board carries synth bass on some tunes. Don't treat both channels the same.</div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="e7">
+        <div class="bd">
+          <span class="tag">Vocals — all 4</span>
+          <div class="ttl">Same starting point, then tune Kevin by ear</div>
+          <div class="chips">
+            <span class="c cut">−3 dB @ 300 Hz · Q1.0</span>
+            <span class="c boost">+3 dB @ 3 kHz · Q1.0</span>
+            <span class="c cut">−2 dB @ 5.5 kHz · Q2.0</span>
+          </div>
+          <div class="who">Sweep the 300 between 200–400 per voice — proximity mud sits in a different place on every singer. The 5.5k cut only for a harsh or spitty voice.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 02 COMP -->
+  <section class="sec" id="s2">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">02</span> · Watch the GR meter, not the dial</div>
+      <h2>Compression</h2>
+      <p>Thresholds depend on your gain staging, so the number on the knob means nothing. Pull the threshold down until the <b>gain reduction meter</b> hits the target on the loud moments. That's the setting.</p>
+    </div>
+    <div class="sec-bd">
+
+      <div class="bound" style="margin-top:0; margin-bottom:1.1rem; border-left-color:var(--rule); background:transparent">
+        <div class="silk">RMS or Peak — the split runs down the middle of the kit</div>
+        <p><b>RMS</b> averages over a short window — it responds to how loud something <em>feels</em>. Use it when the job is smoothing a performance. <b>Peak</b> reacts instantly. Use it when the job is catching a transient before it eats your headroom.</p>
+        <p><b>The test: does the source have a violent attack that's much louder than its body?</b> Kick and snare — yes, and that crack is what you're managing. Voice and bass — no. A voice swells, a bass note blooms. Set those to Peak and the compressor lunges at every consonant and pick attack, and the result sounds nervous.</p>
+        <p><b>On bass, RMS plus the 25 ms attack is the whole trick:</b> RMS ignores the pluck (too short to move an averaged detector), then clamps the sustain. Punch stays, swell goes. Peak does the exact opposite.</p>
+        <p>Everything runs <code>Log</code> release and <code>Knee 1</code>. <code>Key On</code> stays off — that's a sidechain and you don't want one.</p>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="k1">
+        <div class="bd">
+          <span class="tag">Bass — the important one</span>
+          <div class="ttl">Highest-value compressor in the whole mix</div>
+          <div class="chips">
+            <span class="c p">Ratio 4:1</span>
+            <span class="c boost">3–6 dB GR</span>
+            <span class="c p">Attack 25 ms</span>
+            <span class="c p">Release 150 ms</span>
+            <span class="c cut">RMS</span>
+          </div>
+          <div class="who">A level bass line can sit higher in the mix without transients slamming the woofer. Medium attack lets the pluck through and catches the sustain. This one earns its keep every single song.</div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="k2">
+        <div class="bd">
+          <span class="tag">Vocals — all 4</span>
+          <div class="ttl">Keeps belted notes from jumping out</div>
+          <div class="chips">
+            <span class="c p">Ratio 3:1</span>
+            <span class="c boost">4–6 dB GR</span>
+            <span class="c p">Attack 15 ms</span>
+            <span class="c p">Release 200 ms</span>
+            <span class="c cut">RMS</span>
+          </div>
+          <div class="who"><b>Kevin gets more: 4:1, 5–7 dB GR.</b> Verse-to-chorus on a rock lead is 15 dB or more, and nobody's standing at a console riding his fader.</div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="k3">
+        <div class="bd">
+          <span class="tag">Kick</span>
+          <div class="ttl">Evens out hit-to-hit volume</div>
+          <div class="chips">
+            <span class="c p">Ratio 4:1</span>
+            <span class="c boost">4–6 dB GR</span>
+            <span class="c p">Attack 10 ms</span>
+            <span class="c p">Release 100 ms</span>
+            <span class="c flat">Peak</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="k4">
+        <div class="bd">
+          <span class="tag">Snare</span>
+          <div class="ttl">Ghost notes and hard hits closer together</div>
+          <div class="chips">
+            <span class="c p">Ratio 3:1</span>
+            <span class="c boost">3–5 dB GR</span>
+            <span class="c p">Attack 10 ms</span>
+            <span class="c p">Release 150 ms</span>
+            <span class="c flat">Peak</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="clip">
+        <div class="silk">▲ Clip — don't compress the guitars</div>
+        <p>They're already compressed — by the amp, by the pedals, by the player's hands. A compressor on a rock guitar channel takes away the dynamic that makes it sound like a rock guitar.</p>
+        <p>If a guitar is jumping out, <strong>that's a fader problem, or a player problem.</strong> Not a compressor problem.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 FX -->
+  <section class="sec" id="s3">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">03</span> · Felt, not heard</div>
+      <h2>Reverb</h2>
+      <p>Keep the decay short. A long tail washes out a bar and buries the lyric. Both sends are post-fader.</p>
+    </div>
+    <div class="sec-bd">
+
+      <div class="item">
+        <input type="checkbox" id="f1">
+        <div class="bd">
+          <span class="tag">FX 1 — Vocals</span>
+          <div class="ttl">Short room / plate</div>
+          <div class="chips">
+            <span class="c p">Decay 1.3 s</span>
+            <span class="c p">Pre-delay 20 ms</span>
+            <span class="c cut">Send −12 dB per vocal</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="f2">
+        <div class="bd">
+          <span class="tag">FX 2 — Snare</span>
+          <div class="ttl">Shorter, lighter room</div>
+          <div class="chips">
+            <span class="c p">Decay 0.9 s</span>
+            <span class="c p">Pre-delay 10 ms</span>
+            <span class="c cut">Send −15 dB</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="item">
+        <input type="checkbox" id="f3">
+        <div class="bd">
+          <span class="tag">The ears</span>
+          <div class="ttl">Put a little verb in the IEM mixes — less than FOH</div>
+          <div class="who">Singers need something to sing <em>against</em>; a bone-dry ear mix is brutal and makes people push. But a wash in the ears is disorienting and kills timing. Start the FX return around <b>6–8 dB lower</b> in the aux mixes than in the house. Kevin will want the most.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 04 SAVE -->
+  <section class="sec" id="s4">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">04</span> · This is the persistence layer</div>
+      <h2>Save the Scene</h2>
+      <p>You dial this once. After that, the XR18 remembers it, not you.</p>
+    </div>
+    <div class="sec-bd">
+      <div class="item">
+        <input type="checkbox" id="s1c">
+        <div class="bd">
+          <div class="ttl">Save to <b style="color:var(--attn)">PA / No Sub</b> and <b style="color:var(--attn)">PA / With Sub</b></div>
+          <div class="who">The two scenes differ only in the kick and bass low-end EQ, plus the HPF values from the PA runbook. Everything else in this document is identical in both.</div>
+        </div>
+      </div>
+
+      <div class="why">
+        <b>The ticks on this page don't persist, and shouldn't.</b> A standalone HTML file on a tablet has nowhere reliable to store them, and it doesn't matter — this is a one-time setup document. Work through it once, save the scene, and <b>the scene is the memory.</b> The next time you touch this file it should be because something changed, and you'll want a fresh checklist anyway.
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <b>Owned here</b> — per-channel EQ, compression, reverb sends.<br>
+    <b>Owned by the PA runbook</b> — low cuts, crossover, room GEQ, speaker rear panels, power.<br>
+    <b>Removed from the old version</b> — the low-cut table (conflicted: bass at 30 Hz), and the main-output GEQ (tuned for QSC/Thump port resonance, and a ring-out procedure you don't need with no wedges on stage).<br><br>
+    Every number here is a starting point. The room gets a vote.
+  </footer>
+
+</main>
+
+<script>
+  function setMode(m){
+    document.body.className = 'm-' + m;
+    document.getElementById('b-nosub').classList.toggle('on', m === 'nosub');
+    document.getElementById('b-sub').classList.toggle('on', m === 'sub');
+  }
+  var boxes = document.querySelectorAll('.item input[type=checkbox]');
+  var meter = document.getElementById('meter');
+  function paint(){
+    var done = 0;
+    boxes.forEach(function(b){
+      b.closest('.item').classList.toggle('done', b.checked);
+      if (b.checked) done++;
+    });
+    meter.textContent = done + '/' + boxes.length;
+    meter.style.color = (done === boxes.length) ? 'var(--attn)'
+      : (done === 0 ? 'var(--dim)' : 'var(--signal)');
+  }
+  boxes.forEach(function(b){ b.addEventListener('change', paint); });
+  paint();
+</script>
+
+</body>
+</html>

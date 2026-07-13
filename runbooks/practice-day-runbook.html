@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Practice Day Runbook — band present</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --deep:#0e1013; --panel:#15181c; --raised:#1c2127;
+    --rule:#2b333b; --rule-soft:#21272d;
+    --signal:#43c46b; --attn:#ffb02e; --clip:#ff4b4b;
+    --text:#e4e8ec; --label:#7d8792; --dim:#59626c;
+    --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans:"Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; scroll-padding-top:100px; }
+  body{
+    background:var(--deep); color:var(--text); font-family:var(--sans);
+    font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased; padding-bottom:5rem;
+  }
+  .silk{ font-family:var(--mono); font-weight:700; font-size:.62rem; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); }
+
+  .mast{ border-bottom:1px solid var(--rule); background:linear-gradient(180deg,#191d22 0%,var(--panel) 100%); padding:1.6rem 1.15rem 1.15rem; }
+  .mast h1{ font-family:var(--mono); font-weight:800; font-size:clamp(1.35rem,5.4vw,2rem); letter-spacing:-.02em; line-height:1.12; text-transform:uppercase; margin:.5rem 0 .55rem; }
+  .mast h1 em{ font-style:normal; color:var(--attn); }
+  .mast .sub{ color:var(--label); font-size:.9rem; max-width:56ch; }
+  .rig{ display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.95rem; }
+  .chip0{ font-family:var(--mono); font-size:.66rem; font-weight:500; letter-spacing:.05em; padding:.3rem .5rem; border-radius:3px; background:var(--raised); border:1px solid var(--rule); color:var(--label); white-space:nowrap; }
+
+  .nav{ position:sticky; top:0; z-index:20; background:rgba(14,16,19,.93); backdrop-filter:blur(10px); border-bottom:1px solid var(--rule); display:flex; align-items:center; gap:.75rem; padding:.5rem .6rem .5rem 1.15rem; }
+  .nav-scroll{ display:flex; gap:.3rem; overflow-x:auto; flex:1; scrollbar-width:none; -ms-overflow-style:none; }
+  .nav-scroll::-webkit-scrollbar{ display:none; }
+  .nav-scroll a{ font-family:var(--mono); font-size:.7rem; font-weight:700; letter-spacing:.06em; color:var(--label); text-decoration:none; padding:.45rem .55rem; border-radius:4px; border:1px solid transparent; white-space:nowrap; min-height:34px; display:flex; align-items:center; }
+  .nav-scroll a:hover,.nav-scroll a:focus-visible{ color:var(--text); background:var(--raised); border-color:var(--rule); }
+  .meter{ font-family:var(--mono); font-size:.68rem; font-weight:700; color:var(--dim); white-space:nowrap; padding-right:.5rem; letter-spacing:.04em; }
+
+  main{ padding:0 1.15rem; max-width:820px; margin:0 auto; }
+
+  .sec{ border:1px solid var(--rule); background:var(--panel); border-radius:8px; margin-top:1.4rem; overflow:hidden; }
+  .sec-hd{ padding:1rem 1.05rem .85rem; border-bottom:1px solid var(--rule-soft); background:var(--raised); }
+  .sec-hd .num{ color:var(--attn); }
+  .sec-hd h2{ font-family:var(--mono); font-weight:800; font-size:1.02rem; text-transform:uppercase; margin-top:.35rem; line-height:1.25; }
+  .sec-hd p{ color:var(--label); font-size:.85rem; margin-top:.35rem; }
+  .sec-bd{ padding:1.05rem; }
+  .sec.star{ border-color:rgba(255,176,46,.32); }
+  .sec.star .sec-hd{ background:#20211c; }
+
+  ul.check{ list-style:none; }
+  ul.check li{ display:flex; gap:.7rem; align-items:flex-start; padding:.62rem 0; border-bottom:1px solid var(--rule-soft); }
+  ul.check li:last-child{ border-bottom:0; padding-bottom:0; }
+  ul.check li:first-child{ padding-top:0; }
+  ul.check input[type=checkbox]{ appearance:none; -webkit-appearance:none; flex:0 0 auto; width:22px; height:22px; margin-top:2px; border:1.5px solid var(--rule); border-radius:4px; background:var(--deep); cursor:pointer; position:relative; }
+  ul.check input[type=checkbox]:focus-visible{ outline:2px solid var(--attn); outline-offset:2px; }
+  ul.check input[type=checkbox]:checked{ background:var(--signal); border-color:var(--signal); }
+  ul.check input[type=checkbox]:checked::after{ content:""; position:absolute; left:7px; top:3px; width:5px; height:10px; border:solid #0e1013; border-width:0 2px 2px 0; transform:rotate(45deg); }
+  ul.check label{ cursor:pointer; flex:1; font-size:.94rem; }
+  ul.check input:checked + label{ color:var(--dim); }
+  ul.check input:checked + label b{ color:var(--dim); }
+  ul.check label b{ font-weight:600; }
+  ul.check label small{ display:block; color:var(--dim); font-size:.79rem; margin-top:.12rem; line-height:1.45; }
+  ul.check label .val{ font-family:var(--mono); font-weight:700; color:var(--attn); }
+  ul.check label .bad{ font-family:var(--mono); font-weight:700; color:var(--clip); }
+  ul.check label .ok{ font-family:var(--mono); font-weight:700; color:var(--signal); }
+  ul.check input:checked + label .val, ul.check input:checked + label .bad, ul.check input:checked + label .ok{ color:var(--dim); }
+  ul.check li.done label{ color:var(--dim); }
+
+  .tag{ display:inline-block; font-family:var(--mono); font-size:.57rem; font-weight:700; letter-spacing:.11em; text-transform:uppercase; color:var(--dim); border:1px solid var(--rule); border-radius:3px; padding:.08rem .35rem; margin-right:.45rem; vertical-align:1px; }
+
+  .clip{ border:1px solid var(--clip); border-left-width:3px; background:rgba(255,75,75,.06); border-radius:0 5px 5px 0; padding:.85rem .95rem; margin:1rem 0; }
+  .clip .silk{ color:var(--clip); }
+  .clip p{ font-size:.9rem; margin-top:.4rem; }
+  .clip p + p{ margin-top:.55rem; }
+  .clip strong{ color:var(--clip); font-weight:700; }
+  .clip code{ font-family:var(--mono); font-size:.85em; font-weight:700; color:var(--attn); }
+
+  .tech{ border:1px solid var(--attn); border-left-width:3px; background:rgba(255,176,46,.06); border-radius:0 5px 5px 0; padding:.85rem .95rem; margin:1rem 0; }
+  .tech .silk{ color:var(--attn); }
+  .tech p{ font-size:.9rem; margin-top:.4rem; }
+  .tech p + p{ margin-top:.55rem; }
+  .tech strong{ color:var(--attn); font-weight:700; }
+  .tech code{ font-family:var(--mono); font-size:.85em; font-weight:700; color:var(--attn); }
+
+  .why{ border-left:2px solid var(--rule); padding-left:.85rem; margin-top:1rem; color:var(--label); font-size:.855rem; line-height:1.62; }
+  .why b{ color:var(--text); font-weight:600; }
+  .why code{ font-family:var(--mono); font-size:.88em; color:var(--attn); font-weight:700; }
+
+  .xref{ border:1px solid var(--rule); border-left:3px solid var(--signal); background:rgba(67,196,107,.05); border-radius:0 5px 5px 0; padding:.75rem .9rem; margin:1rem 0; font-size:.87rem; color:var(--label); }
+  .xref b{ color:var(--signal); font-family:var(--mono); font-weight:700; font-size:.8rem; }
+
+  /* Player cards */
+  .pc{ background:var(--deep); border:1px solid var(--rule-soft); border-left:3px solid var(--rule); border-radius:0 7px 7px 0; padding:.9rem 1rem; margin-bottom:.6rem; }
+  .pc.tmpl{ border-left-color:var(--signal); }
+  .pc .pn{ font-family:var(--mono); font-weight:800; font-size:.9rem; text-transform:uppercase; letter-spacing:.04em; }
+  .pc .pr{ color:var(--dim); font-size:.76rem; margin-top:.1rem; }
+  .pc .pw{ font-size:.88rem; margin-top:.6rem; }
+  .pc .pw b{ font-weight:600; }
+  .pc .fxline{ font-family:var(--mono); font-size:.72rem; font-weight:700; margin-top:.55rem; letter-spacing:.03em; }
+  .pc .fxline.yes{ color:var(--attn); }
+  .pc .fxline.no{ color:var(--dim); }
+
+  .fix{ display:grid; gap:.5rem; }
+  .fixrow{ background:var(--deep); border:1px solid var(--rule-soft); border-radius:6px; padding:.75rem .85rem; }
+  .fixrow .q{ font-weight:600; font-size:.92rem; }
+  .fixrow .a{ color:var(--label); font-size:.85rem; margin-top:.25rem; }
+  .fixrow .a b{ color:var(--text); font-weight:600; }
+
+  footer{ margin-top:2rem; padding:1.2rem 0 0; border-top:1px solid var(--rule-soft); color:var(--dim); font-size:.78rem; line-height:1.65; }
+  footer b{ color:var(--label); font-weight:600; }
+
+  @media (max-width:420px){ main{ padding:0 .8rem; } .mast{ padding:1.3rem .8rem 1rem; } .nav{ padding-left:.8rem; } }
+  @media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } }
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="silk">Everyone in the room · this is the one you can't do alone</div>
+  <h1>Practice Day<br><em>Runbook</em></h1>
+  <p class="sub">Gains, thresholds, the house mix, and six ear mixes. Everything here needs a human making noise into a microphone — which is exactly why none of it could be done on Sunday night.</p>
+  <div class="rig">
+    <span class="chip0">6-piece</span>
+    <span class="chip0">13 channels</span>
+    <span class="chip0">6 IEM mixes</span>
+    <span class="chip0">Sends are PRE-fader</span>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="nav-scroll">
+    <a href="#s0">00 SETUP</a>
+    <a href="#s1">01 GAIN</a>
+    <a href="#s2">02 COMP</a>
+    <a href="#s3">03 HOUSE</a>
+    <a href="#s4">04 EARS</a>
+    <a href="#s5">05 FIXES</a>
+    <a href="#s6">06 SAVE</a>
+  </div>
+  <div class="meter" id="meter">0/0</div>
+</nav>
+
+<main>
+
+  <div class="xref">
+    <b>OWNED ELSEWHERE →</b> Filters, speaker panels and room tuning live in the <b>PA Runbook</b>. EQ curves, compressor ratios and FX settings live in the <b>EQ &amp; FX Runbook</b>. This document sets <b>levels</b>, and nothing else.
+  </div>
+
+  <!-- 00 -->
+  <section class="sec" id="s0">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">00</span> · Before anyone plugs in</div>
+      <h2>Setup</h2>
+    </div>
+    <div class="sec-bd">
+      <ul class="check">
+        <li><input type="checkbox" id="a1"><label for="a1"><b>Splitter patched.</b><small>Stage inputs into the Seismic box. One trunk to the XR18. Other trunk to the house snake — only on FOH nights.</small></label></li>
+        <li><input type="checkbox" id="a2"><label for="a2"><b>XR18 and network up.</b><small>Travel router powered, mixer connected, Mixing Station linked.</small></label></li>
+        <li><input type="checkbox" id="a3"><label for="a3"><b>IEM system live.</b><small>Phenyx Pro quad — 4 wireless packs charged and on the right channel (Kevin, Jamie, Pappy, Dan). Two wired runs out to Robert and Rob, each with a belt-pack headphone amp at the far end.</small></label></li>
+        <li><input type="checkbox" id="a4"><label for="a4"><b>Load <span class="val">Base</span>.</b><small>Everything from Sunday — filters, EQ, compressor ratios, FX. Do not start from zero.</small></label></li>
+        <li><input type="checkbox" id="a5"><label for="a5"><b>Confirm FX returns are assigned to LR</b> and sitting at unity.<small>FxRet 1, 2, 3. If a return isn't on the bus, the reverb goes nowhere and you'll spend twenty minutes blaming the FX engine.</small></label></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 01 -->
+  <section class="sec" id="s1">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">01</span> · One person at a time</div>
+      <h2>Gain</h2>
+      <p>Everyone plays or sings at <b>real performance volume.</b> Not a soft test tap, not a polite check-one-two.</p>
+    </div>
+    <div class="sec-bd">
+
+      <div class="clip">
+        <div class="silk">▲ Clip — "yellow, kissing orange" is an analog instruction</div>
+        <p>On a digital console that's roughly <code>−6</code> to <code>−3 dBFS</code> — <strong>5 to 7 dB too hot.</strong> Digital clipping isn't warmth, it's a crack, and it's unrecoverable.</p>
+        <p><strong>Target: peaks at <code>−12</code> to <code>−10 dBFS</code>.</strong> On the meter that reads green, occasionally touching yellow. If it's living in the yellow, come down.</p>
+      </div>
+
+      <div class="xref">
+        <b>METHOD →</b> EQ &amp; FX Runbook <b>§00</b>. Read the four-dB-scales warning before you touch a knob — preamp gain, channel meter, fader and GR meter are all labelled in dB and all measure different things.
+      </div>
+
+      <ul class="check">
+        <li class="done"><input type="checkbox" id="b1" checked><label for="b1"><span class="tag">Bass</span><b>Dan</b> — <span class="ok">done Sunday</span><small>Confirm it still peaks −12 to −10. Redo if the SansAmp's Level knob has moved — the DI out rides with it.</small></label></li>
+        <li class="done"><input type="checkbox" id="b2" checked><label for="b2"><span class="tag">Vox</span><b>Dan</b> — <span class="ok">done Sunday</span></label></li>
+        <li><input type="checkbox" id="b3"><label for="b3"><span class="tag">Drums</span><b>Kick</b><small>Robert plays a normal-volume pattern.</small></label></li>
+        <li><input type="checkbox" id="b4"><label for="b4"><span class="tag">Drums</span><b>Snare</b><small>Backbeat hits, not taps.</small></label></li>
+        <li><input type="checkbox" id="b5"><label for="b5"><span class="tag">Drums</span><b>Overheads</b><small>Full pattern — cymbals <em>and toms</em>. These are your only tom mics.</small></label></li>
+        <li><input type="checkbox" id="b6"><label for="b6"><span class="tag">Gtr</span><b>Pappy</b><small>Stage volume, not living-room volume.</small></label></li>
+        <li><input type="checkbox" id="b7"><label for="b7"><span class="tag">Gtr</span><b>Jamie</b></label></li>
+        <li><input type="checkbox" id="b8"><label for="b8"><span class="tag">Keys</span><b>Keys 1 — Rob</b><small>Full chord at real volume.</small></label></li>
+        <li><input type="checkbox" id="b9"><label for="b9"><span class="tag">Keys</span><b>Keys 2 — Rob</b><small>Ask which board carries synth bass. <span class="bad">Cars.</span> That decides the HPF, and you can't set it blind.</small></label></li>
+        <li><input type="checkbox" id="b10"><label for="b10"><span class="tag">Vox</span><b>Kevin — lead</b><small>A real chorus at full send. Not a verse, not spoken.</small></label></li>
+        <li><input type="checkbox" id="b11"><label for="b11"><span class="tag">Vox</span><b>Rob</b></label></li>
+        <li><input type="checkbox" id="b12"><label for="b12"><span class="tag">Vox</span><b>Pappy</b><small>Loudest backing line.</small></label></li>
+        <li><input type="checkbox" id="b13"><label for="b13"><span class="tag">Room</span><b>Ambience mic</b><small>Set it low. It's for context in the ears, not a channel in the mix.</small></label></li>
+        <li><input type="checkbox" id="b14"><label for="b14"><b>Re-check every gain <span class="bad">after</span> EQ.</b><small>An EQ boost adds level. A +3 dB lift at 90 Hz makes that channel 3 dB hotter than when you staged it. Everyone skips this.</small></label></li>
+        <li><input type="checkbox" id="b15"><label for="b15"><b>All faders to <span class="val">unity</span>.</b><small>Build the mix from there. If a fader later ends up wildly off, that's a gain error — not a mix decision.</small></label></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section class="sec" id="s2">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">02</span> · Now they mean something</div>
+      <h2>Compressor Thresholds</h2>
+      <p>Ratios, attack and release were set Sunday. Thresholds need real signal, so they waited for you.</p>
+    </div>
+    <div class="sec-bd">
+      <ul class="check">
+        <li class="done"><input type="checkbox" id="c1" checked><label for="c1"><b>Bass</b> — <span class="ok">done Sunday</span><small>Landed at −20.5, +2.0 makeup, ~4 dB GR.</small></label></li>
+        <li class="done"><input type="checkbox" id="c2" checked><label for="c2"><b>Vox — Dan</b> — <span class="ok">done Sunday</span></label></li>
+        <li><input type="checkbox" id="c3"><label for="c3"><b>Kick</b> — target <span class="val">4–6 dB GR</span></label></li>
+        <li><input type="checkbox" id="c4"><label for="c4"><b>Snare</b> — target <span class="val">3–5 dB GR</span></label></li>
+        <li><input type="checkbox" id="c5"><label for="c5"><b>Vox — Kevin</b> — target <span class="val">5–7 dB GR</span><small>Harder than the others. A rock lead swings 15 dB verse to chorus and nobody's riding his fader.</small></label></li>
+        <li><input type="checkbox" id="c6"><label for="c6"><b>Vox — Rob, Pappy</b> — target <span class="val">4–6 dB GR</span></label></li>
+      </ul>
+
+      <div class="why">
+        <b>Pull the threshold down until the GR meter hits the target on the loud moments.</b> Then have them play or sing <em>quietly</em> — GR should barely move. If it's pinned no matter what they do, you've gone too far. <b>Watch the meter, not the number on the knob.</b>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section class="sec" id="s3">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">03</span> · Own-PA nights only</div>
+      <h2>The House Mix</h2>
+      <p>On FOH nights the house engineer builds this from the other trunk. Skip it.</p>
+    </div>
+    <div class="sec-bd">
+      <ul class="check">
+        <li><input type="checkbox" id="d1"><label for="d1"><b>Drums first.</b><small>Kick, snare, overheads together. This is the floor everything else stands on.</small></label></li>
+        <li><input type="checkbox" id="d2"><label for="d2"><b>Bass under the drums.</b><small>Felt as much as heard. Not louder than the kick.</small></label></li>
+        <li><input type="checkbox" id="d3"><label for="d3"><b>Guitars around the rhythm section</b>, not on top of it.<small>If they're fighting, that's an EQ problem, not a fader problem — push one to 2.5k and the other to 3.5k.</small></label></li>
+        <li><input type="checkbox" id="d4"><label for="d4"><b>Keys into the gaps.</b><small>Pull back anywhere they mask the vocals.</small></label></li>
+        <li><input type="checkbox" id="d5"><label for="d5"><b>Vocals on top, last.</b><small>Kevin loudest. Harmonies underneath, never competing with the lead.</small></label></li>
+        <li><input type="checkbox" id="d6"><label for="d6"><b>Send someone out front.</b> <span class="bad">Ears out.</span><small>Have them stand in the room for a whole song and call the master level from there. You cannot hear the room through IEMs — not one note of it.</small></label></li>
+      </ul>
+
+      <div class="xref">
+        <b>DON'T EQ HERE →</b> The curves are already in from Sunday. If something sounds wrong, check it against the <b>EQ &amp; FX Runbook</b> before you start turning knobs. Mixing and EQ-ing at the same time is how you end up with neither.
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section class="sec star" id="s4">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">04</span> · The main event</div>
+      <h2>Six Ear Mixes</h2>
+      <p>This is the part that takes the time, and the part that decides whether anyone enjoys the gig.</p>
+    </div>
+    <div class="sec-bd">
+
+      <div class="clip">
+        <div class="silk">▲ Clip — a DCA cannot change an ear mix</div>
+        <p>Your aux sends tap at <code>Post EQ</code> — <strong>before the fader.</strong> A DCA moves faders. Therefore <strong>a DCA is physically incapable of touching a monitor mix.</strong></p>
+        <p>There is no "bring up the band DCA as a base" shortcut. <strong>Every ear mix is built from its own send levels, channel by channel.</strong></p>
+        <p>The real shortcut is <strong>copy the bus.</strong> Build one properly, then paste it to the other five and personalise from there.</p>
+      </div>
+
+      <div class="pc tmpl">
+        <div class="pn">Dan — Bus 4</div>
+        <div class="pr">Build this one first. It becomes the template.</div>
+        <div class="pw">Everyone gets: <b>kick, snare, bass, both guitars, keys, all four vocals, ambience.</b> Get a balanced, usable full-band mix here — then copy it to the other five and adjust one thing at a time with each player standing next to you.</div>
+        <div class="fxline yes">FX: light plate on the vocals</div>
+      </div>
+
+      <div class="pc">
+        <div class="pn">Robert — Bus 5 · Drums</div>
+        <div class="pr">Wired run</div>
+        <div class="pw">Wants <b>his own kick and snare well above everything else</b>, plus bass to lock the pocket. He's the clock — he needs to hear himself before he hears anyone.</div>
+        <div class="fxline no">FX: NONE. Reverb smears the timing reference he's playing to.</div>
+      </div>
+
+      <div class="pc">
+        <div class="pn">Rob — Bus 6 · Keys + Vox</div>
+        <div class="pr">Wired run</div>
+        <div class="pw">Wants <b>his own two boards and his own vocal</b> clearly above the band.</div>
+        <div class="fxline yes">FX: light — he's singing</div>
+      </div>
+
+      <div class="pc">
+        <div class="pn">Pappy — Bus 3 · Gtr + Vox</div>
+        <div class="pr">Wireless</div>
+        <div class="pw">Wants <b>his own guitar present</b> and <b>Kevin's lead vocal for timing cues.</b></div>
+        <div class="fxline yes">FX: light — he's singing</div>
+      </div>
+
+      <div class="pc">
+        <div class="pn">Jamie — Bus 2 · Guitar</div>
+        <div class="pr">Wireless · no mic</div>
+        <div class="pw">Wants <b>his own guitar and the drums.</b> He's not singing, so he needs rhythm lock more than anything else.</div>
+        <div class="fxline no">FX: none needed</div>
+      </div>
+
+      <div class="pc">
+        <div class="pn">Kevin — Bus 1 · Lead Vocal</div>
+        <div class="pr">Wireless</div>
+        <div class="pw">Wants <b>his own voice well out front</b>, band underneath but not buried. Start his band level <b>lower</b> than everyone else's — a lead singer needs room around their voice.</div>
+        <div class="fxline yes">FX: he needs it most — plate AND slapback</div>
+      </div>
+
+      <div class="tech">
+        <div class="silk">▲ Reverb in the ears — per player, not a blanket rule</div>
+        <p><strong>Singers need something to sing against.</strong> A bone-dry vocal in a sealed IEM is unnatural and brutal — they can't hear themselves in a space, so they push, and they're hoarse by the third set.</p>
+        <p><strong>Drummers need the opposite.</strong> Reverb blurs the transient he's timing to.</p>
+        <p>Send <code>FxRet 1</code> (plate) and <code>FxRet 3</code> (slapback) to the <strong>vocalists' buses only</strong>, around <code>6–8 dB below</code> their house level. Robert and Jamie get nothing.</p>
+      </div>
+
+      <ul class="check" style="margin-top:1.1rem">
+        <li><input type="checkbox" id="e1"><label for="e1"><b>Build Dan's bus.</b> Full band, balanced, usable.</label></li>
+        <li><input type="checkbox" id="e2"><label for="e2"><b>Copy it to the other five.</b></label></li>
+        <li><input type="checkbox" id="e3"><label for="e3"><b>Personalise each one</b>, with that player standing next to you.<small>One at a time. Everyone in the room waits. It's worth it.</small></label></li>
+        <li><input type="checkbox" id="e4"><label for="e4"><b>Ambience mic in all six.</b><small>Low. It's what stops six people feeling sealed in a box — and it's your only view of what the room is actually doing.</small></label></li>
+        <li><input type="checkbox" id="e5"><label for="e5"><b>Test the mute.</b><small>Pre-fader sends mean <b>muting a channel may not remove it from the ear mixes.</b> Mute a guitar and ask Jamie if he still hears himself. Learn this now, not mid-set.</small></label></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 05 -->
+  <section class="sec" id="s5">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">05</span> · When someone complains</div>
+      <h2>Quick Fixes</h2>
+    </div>
+    <div class="sec-bd">
+      <div class="fix">
+        <div class="fixrow"><div class="q">"I can't hear myself"</div><div class="a"><b>Turn them up in their own bus.</b> Never turn everyone else down — that's how you end up with six mixes that are all too loud and nobody can hear anything.</div></div>
+        <div class="fixrow"><div class="q">"It sounds thin / lifeless"</div><div class="a">Probably a <b>dry ear mix.</b> Add a little plate. Singers especially.</div></div>
+        <div class="fixrow"><div class="q">Crackly or distorted</div><div class="a"><b>Gain is too hot.</b> Check that channel's meter — if peaks are above −6, come down. This is the single most common cause.</div></div>
+        <div class="fixrow"><div class="q">Muting a channel doesn't change the ears</div><div class="a"><b>That's the architecture, not a fault.</b> Pre-fader sends tap before the mute. It's a feature — it means your house moves don't wreck anyone's mix — but it surprises people.</div></div>
+        <div class="fixrow"><div class="q">DCA does nothing to the ears</div><div class="a"><b>Also expected.</b> Same reason. DCAs only move the house.</div></div>
+        <div class="fixrow"><div class="q">Wireless dropout</div><div class="a">Travel router fighting for Wi-Fi channel space, pack battery, or line of sight. Check in that order.</div></div>
+        <div class="fixrow"><div class="q">"Something's just missing"</div><div class="a">Right bus, and not muted. Nine times in ten it's one of those two.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section class="sec" id="s6">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">06</span> · Don't lose the afternoon</div>
+      <h2>Save</h2>
+    </div>
+    <div class="sec-bd">
+      <ul class="check">
+        <li><input type="checkbox" id="f1"><label for="f1"><b>Re-save <span class="val">Base</span></b> with every gain and threshold in it.</label></li>
+        <li><input type="checkbox" id="f2"><label for="f2"><b>Derive the gig scenes</b> from Base.<small>GIG / NO SUB · GIG / SUB · GIG / HOUSE PA · PRACTICE</small></small></label></li>
+        <li><input type="checkbox" id="f3"><label for="f3"><b><span class="bad">Share the file off the machine.</span></b><small>Mixing Station's own storage is one app reinstall from gone. This afternoon took the whole band's time — spend thirty seconds protecting it.</small></label></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <b>Owned here</b> — gains, compressor thresholds, the house balance, six ear mixes.<br>
+    <b>PA Runbook</b> — filters, speaker rear panels, crossover, room tuning, power.<br>
+    <b>EQ &amp; FX Runbook</b> — the method for all of the above, plus EQ curves, ratios and FX.<br><br>
+    Sends are <b>pre-fader</b>. Faders and DCAs move the house and nothing else. Internalise that and half the confusion goes away.
+  </footer>
+
+</main>
+
+<script>
+  var boxes = document.querySelectorAll('ul.check input[type=checkbox]');
+  var meter = document.getElementById('meter');
+  function paint(){
+    var done = 0;
+    boxes.forEach(function(b){
+      b.closest('li').classList.toggle('done', b.checked);
+      if (b.checked) done++;
+    });
+    meter.textContent = done + '/' + boxes.length;
+    meter.style.color = (done === boxes.length) ? 'var(--attn)'
+      : (done === 0 ? 'var(--dim)' : 'var(--signal)');
+  }
+  boxes.forEach(function(b){ b.addEventListener('change', paint); });
+  paint();
+</script>
+
+</body>
+</html>

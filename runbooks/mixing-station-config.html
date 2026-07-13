@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Mixing Station &amp; XR18 — Config</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --deep:#0e1013; --panel:#15181c; --raised:#1c2127;
+    --rule:#2b333b; --rule-soft:#21272d;
+    --signal:#43c46b; --attn:#ffb02e; --clip:#ff4b4b;
+    --text:#e4e8ec; --label:#7d8792; --dim:#59626c;
+    --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans:"Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; scroll-padding-top:100px; }
+  body{ background:var(--deep); color:var(--text); font-family:var(--sans); font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased; padding-bottom:5rem; }
+  .silk{ font-family:var(--mono); font-weight:700; font-size:.62rem; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); }
+
+  .mast{ border-bottom:1px solid var(--rule); background:linear-gradient(180deg,#191d22 0%,var(--panel) 100%); padding:1.6rem 1.15rem 1.15rem; }
+  .mast h1{ font-family:var(--mono); font-weight:800; font-size:clamp(1.35rem,5.4vw,2rem); letter-spacing:-.02em; line-height:1.12; text-transform:uppercase; margin:.5rem 0 .55rem; }
+  .mast h1 em{ font-style:normal; color:var(--attn); }
+  .mast .sub{ color:var(--label); font-size:.9rem; max-width:58ch; }
+  .rig{ display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.95rem; }
+  .chip0{ font-family:var(--mono); font-size:.66rem; font-weight:500; letter-spacing:.05em; padding:.3rem .5rem; border-radius:3px; background:var(--raised); border:1px solid var(--rule); color:var(--label); white-space:nowrap; }
+
+  .nav{ position:sticky; top:0; z-index:20; background:rgba(14,16,19,.93); backdrop-filter:blur(10px); border-bottom:1px solid var(--rule); display:flex; align-items:center; gap:.75rem; padding:.5rem .6rem .5rem 1.15rem; }
+  .nav-scroll{ display:flex; gap:.3rem; overflow-x:auto; flex:1; scrollbar-width:none; -ms-overflow-style:none; }
+  .nav-scroll::-webkit-scrollbar{ display:none; }
+  .nav-scroll a{ font-family:var(--mono); font-size:.7rem; font-weight:700; letter-spacing:.06em; color:var(--label); text-decoration:none; padding:.45rem .55rem; border-radius:4px; border:1px solid transparent; white-space:nowrap; min-height:34px; display:flex; align-items:center; }
+  .nav-scroll a:hover,.nav-scroll a:focus-visible{ color:var(--text); background:var(--raised); border-color:var(--rule); }
+  .meter{ font-family:var(--mono); font-size:.68rem; font-weight:700; color:var(--dim); white-space:nowrap; padding-right:.5rem; letter-spacing:.04em; }
+
+  main{ padding:0 1.15rem; max-width:820px; margin:0 auto; }
+
+  .sec{ border:1px solid var(--rule); background:var(--panel); border-radius:8px; margin-top:1.4rem; overflow:hidden; }
+  .sec-hd{ padding:1rem 1.05rem .85rem; border-bottom:1px solid var(--rule-soft); background:var(--raised); }
+  .sec-hd .num{ color:var(--attn); }
+  .sec-hd h2{ font-family:var(--mono); font-weight:800; font-size:1.02rem; text-transform:uppercase; margin-top:.35rem; line-height:1.25; }
+  .sec-hd p{ color:var(--label); font-size:.85rem; margin-top:.35rem; }
+  .sec-bd{ padding:1.05rem; }
+  .sec.done-sec{ border-color:rgba(67,196,107,.3); }
+  .sec.done-sec .sec-hd{ background:#182019; }
+  .sec.done-sec .sec-hd h2{ color:var(--signal); }
+
+  ul.check{ list-style:none; }
+  ul.check li{ display:flex; gap:.7rem; align-items:flex-start; padding:.62rem 0; border-bottom:1px solid var(--rule-soft); }
+  ul.check li:last-child{ border-bottom:0; padding-bottom:0; }
+  ul.check li:first-child{ padding-top:0; }
+  ul.check input[type=checkbox]{ appearance:none; -webkit-appearance:none; flex:0 0 auto; width:22px; height:22px; margin-top:2px; border:1.5px solid var(--rule); border-radius:4px; background:var(--deep); cursor:pointer; position:relative; }
+  ul.check input[type=checkbox]:focus-visible{ outline:2px solid var(--attn); outline-offset:2px; }
+  ul.check input[type=checkbox]:checked{ background:var(--signal); border-color:var(--signal); }
+  ul.check input[type=checkbox]:checked::after{ content:""; position:absolute; left:7px; top:3px; width:5px; height:10px; border:solid #0e1013; border-width:0 2px 2px 0; transform:rotate(45deg); }
+  ul.check label{ cursor:pointer; flex:1; font-size:.94rem; }
+  ul.check input:checked + label{ color:var(--dim); }
+  ul.check input:checked + label b{ color:var(--dim); }
+  ul.check label b{ font-weight:600; }
+  ul.check label small{ display:block; color:var(--dim); font-size:.79rem; margin-top:.12rem; line-height:1.45; }
+  ul.check label .val{ font-family:var(--mono); font-weight:700; color:var(--attn); }
+  ul.check label .bad{ font-family:var(--mono); font-weight:700; color:var(--clip); }
+  ul.check label .ok{ font-family:var(--mono); font-weight:700; color:var(--signal); }
+  ul.check input:checked + label .val, ul.check input:checked + label .bad, ul.check input:checked + label .ok{ color:var(--dim); }
+  ul.check li.done label{ color:var(--dim); }
+
+  .clip{ border:1px solid var(--clip); border-left-width:3px; background:rgba(255,75,75,.06); border-radius:0 5px 5px 0; padding:.85rem .95rem; margin:1rem 0; }
+  .clip .silk{ color:var(--clip); }
+  .clip p{ font-size:.9rem; margin-top:.4rem; }
+  .clip p + p{ margin-top:.55rem; }
+  .clip strong{ color:var(--clip); font-weight:700; }
+  .clip code{ font-family:var(--mono); font-size:.85em; font-weight:700; color:var(--attn); }
+
+  .tech{ border:1px solid var(--attn); border-left-width:3px; background:rgba(255,176,46,.06); border-radius:0 5px 5px 0; padding:.85rem .95rem; margin:1rem 0; }
+  .tech .silk{ color:var(--attn); }
+  .tech p{ font-size:.9rem; margin-top:.4rem; }
+  .tech p + p{ margin-top:.55rem; }
+  .tech strong{ color:var(--attn); font-weight:700; }
+  .tech code{ font-family:var(--mono); font-size:.85em; font-weight:700; color:var(--attn); }
+
+  .why{ border-left:2px solid var(--rule); padding-left:.85rem; margin-top:1rem; color:var(--label); font-size:.855rem; line-height:1.62; }
+  .why b{ color:var(--text); font-weight:600; }
+  .why code{ font-family:var(--mono); font-size:.88em; color:var(--attn); font-weight:700; }
+
+  .xref{ border:1px solid var(--rule); border-left:3px solid var(--signal); background:rgba(67,196,107,.05); border-radius:0 5px 5px 0; padding:.75rem .9rem; margin:1rem 0; font-size:.87rem; color:var(--label); }
+  .xref b{ color:var(--signal); font-family:var(--mono); font-weight:700; font-size:.8rem; }
+
+  .grid{ display:grid; gap:.45rem; }
+  .row{ display:grid; grid-template-columns:auto 1fr; gap:.85rem; align-items:baseline; background:var(--deep); border:1px solid var(--rule-soft); border-left:3px solid var(--rule); border-radius:0 6px 6px 0; padding:.7rem .85rem; }
+  .row.hot{ border-left-color:var(--attn); }
+  .row.off{ border-left-color:var(--rule-soft); opacity:.6; }
+  .row .k{ font-family:var(--mono); font-weight:800; font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; }
+  .row .k.a{ color:var(--attn); }
+  .row .v{ font-size:.87rem; color:var(--label); }
+  .row .v b{ color:var(--text); font-weight:600; }
+
+  /* two-system compare */
+  .vs{ display:grid; gap:.6rem; margin-top:.3rem; }
+  .vsc{ border:1px solid var(--rule); background:var(--deep); border-radius:7px; padding:.9rem 1rem; }
+  .vsc.good{ border-color:var(--signal); }
+  .vsc.bad{ border-color:var(--clip); }
+  .vsc h3{ font-family:var(--mono); font-weight:800; font-size:.84rem; text-transform:uppercase; letter-spacing:.03em; margin-bottom:.35rem; }
+  .vsc.good h3{ color:var(--signal); }
+  .vsc.bad h3{ color:var(--clip); }
+  .vsc p{ font-size:.87rem; color:var(--label); }
+  .vsc p b{ color:var(--text); font-weight:600; }
+  .vsc code{ font-family:var(--mono); font-size:.85em; font-weight:700; color:var(--attn); }
+
+  footer{ margin-top:2rem; padding:1.2rem 0 0; border-top:1px solid var(--rule-soft); color:var(--dim); font-size:.78rem; line-height:1.65; }
+  footer b{ color:var(--label); font-weight:600; }
+
+  @media (max-width:420px){ main{ padding:0 .8rem; } .mast{ padding:1.3rem .8rem 1rem; } .nav{ padding-left:.8rem; } }
+  @media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } }
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="silk">The tool, not the audio</div>
+  <h1>Mixing Station<br><em>&amp; XR18 Config</em></h1>
+  <p class="sub">Send taps, DCAs, mute groups, layouts, scenes and backup. Set once, then stop thinking about it. Everything here is about the <b>console and the app</b> — not about how anything sounds.</p>
+  <div class="rig">
+    <span class="chip0">XR18</span>
+    <span class="chip0">Mixing Station Pro</span>
+    <span class="chip0">Linux Mint</span>
+    <span class="chip0">4 DCAs · 4 mute groups</span>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="nav-scroll">
+    <a href="#s1">01 SENDS</a>
+    <a href="#s2">02 DCA</a>
+    <a href="#s3">03 MUTE</a>
+    <a href="#s4">04 LAYOUTS</a>
+    <a href="#s5">05 SOLO/RTA</a>
+    <a href="#s6">06 SCENES</a>
+    <a href="#s7">07 GOTCHAS</a>
+  </div>
+  <div class="meter" id="meter">0/0</div>
+</nav>
+
+<main>
+
+  <div class="xref">
+    <b>SCOPE →</b> This document owns the <b>console configuration</b>. Filters and room tuning are in the <b>PA Runbook</b>. EQ, compression and FX values are in the <b>EQ &amp; FX Runbook</b>. Gains, thresholds and mixes are in the <b>Practice Day Runbook</b>.
+  </div>
+
+  <!-- 01 -->
+  <section class="sec done-sec" id="s1">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">01</span> · Verified — nothing to do</div>
+      <h2>Send Taps ✓</h2>
+      <p>This one decision governs how the entire rig behaves. It's already correct.</p>
+    </div>
+    <div class="sec-bd">
+      <div class="grid">
+        <div class="row hot"><span class="k a">Bus 1–6</span><span class="v"><b>Post EQ</b> — a <em>pre-fader</em> tap. The six ear mixes ignore the house faders entirely.</span></div>
+        <div class="row"><span class="k">FxSnd 1–4</span><span class="v"><b>Post Fader</b> — reverb follows the fader, so the wet/dry ratio holds when you push a vocal up.</span></div>
+      </div>
+
+      <div class="tech">
+        <div class="silk">▲ Everything downstream follows from this</div>
+        <p><strong>The house fader and the ear mixes are completely independent.</strong> Push a vocal up for the room and nobody's in-ears change. That's the whole reason to run pre-fader, and it's what makes mixing from stage survivable.</p>
+        <p><strong>But it cuts the other way:</strong> a <code>DCA</code> moves faders, so a DCA <strong>cannot touch an ear mix</strong>. And the channel <code>mute</code> sits at the fader too — so muting a channel <strong>may not remove it from anyone's ears.</strong></p>
+        <p>Both of those surprise people. Neither is a fault.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section class="sec" id="s2">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">02</span> · Four available</div>
+      <h2>DCA Groups</h2>
+      <p>A shared fader for a group of channels. No audio routes through it.</p>
+    </div>
+    <div class="sec-bd">
+
+      <div class="clip">
+        <div class="silk">▲ Clip — don't build a "Band" DCA</div>
+        <p><strong>The Main LR fader already is one.</strong> A DCA containing every channel and the main fader do the same job.</p>
+        <p>And the XR18 appears to allow only <strong>one DCA per channel</strong> (mute groups allow several — verify by trying to assign Bass to two). If that holds, a Band DCA containing channels 1–8 makes a Drums DCA <strong>impossible</strong> — they'd overlap on kick, snare and OH.</p>
+        <p>You'd have spent your entire DCA budget building a second main fader.</p>
+      </div>
+
+      <div class="grid">
+        <div class="row hot"><span class="k a">DCA 1</span><span class="v"><b>Drums</b> — kick, snare, overheads</span></div>
+        <div class="row hot"><span class="k a">DCA 2</span><span class="v"><b>Vox</b> — Kevin, Dan, Rob, Pappy. <b>The one you'll actually grab.</b> Room fills up, four singers vanish under two guitars — one fader, not four.</span></div>
+        <div class="row hot"><span class="k a">DCA 3</span><span class="v"><b>Music</b> — bass, both guitars, both keys</span></div>
+        <div class="row off"><span class="k">DCA 4</span><span class="v">Leave empty. Gig with three, then assign it to whatever you keep wishing you had a fader for.</span></div>
+      </div>
+
+      <ul class="check" style="margin-top:1rem">
+        <li><input type="checkbox" id="a1"><label for="a1"><b>Test the one-DCA-per-channel limit.</b><small>Try assigning Bass to two DCAs. Ten seconds, and it decides whether the plan above is the only option or just the better one.</small></label></li>
+        <li><input type="checkbox" id="a2"><label for="a2"><b>Build Drums, Vox, Music.</b> Delete Band.</label></li>
+      </ul>
+
+      <div class="why">
+        <b>Remember what a DCA can't do:</b> your sends are pre-fader, so <b>DCAs move the house and nothing else.</b> They will never change an ear mix, no matter how far you push them.
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section class="sec" id="s3">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">03</span> · Four available, multiple per channel</div>
+      <h2>Mute Groups</h2>
+      <p>An instant kill switch, not a level control.</p>
+    </div>
+    <div class="sec-bd">
+      <div class="grid">
+        <div class="row hot"><span class="k a">Mute 1</span><span class="v"><b>Break</b> — every input. <b>The highest-value one.</b> One tap at the end of a set and every mic on stage goes dead. No open-mic squeal, no stage chatter into the room, no drummer noodling while people order drinks. You'll use it three times a night.</span></div>
+        <div class="row hot"><span class="k a">Mute 2</span><span class="v"><b>FX</b> — all four FX sends. Kill every reverb instantly, for a talk moment or a tiled room that's fighting you.</span></div>
+        <div class="row hot"><span class="k a">Mute 3</span><span class="v"><b>Click</b> — on for the songs that need it, off for the ones that don't.</span></div>
+        <div class="row"><span class="k">Mute 4</span><span class="v"><b>All mics but Kevin</b> — for banter between songs.</span></div>
+      </div>
+
+      <div class="clip">
+        <div class="silk">▲ Clip — a mute may not reach the ears</div>
+        <p>The channel mute sits at the fader. Your sends tap <em>before</em> it. So <strong>a muted channel may still be present in all six ear mixes.</strong></p>
+        <p>For <b>Break</b> that's mostly fine — the room goes silent, which is the point. But <strong>test it at practice</strong> so you learn it there and not mid-set. Mute a guitar and ask Jamie whether anything changed.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section class="sec" id="s4">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">04</span> · Don't scroll 18 channels mid-song</div>
+      <h2>Custom Layouts</h2>
+      <p>Build views around what you actually touch while playing bass.</p>
+    </div>
+    <div class="sec-bd">
+      <ul class="check">
+        <li><input type="checkbox" id="b1"><label for="b1"><b>"Show Control"</b> — 3 DCAs + 4 mute groups on one screen.<small>Your live page. If it isn't on this screen, you shouldn't be reaching for it during a set.</small></label></li>
+        <li><input type="checkbox" id="b2"><label for="b2"><b>"Vocals"</b> — all four vox + the Vox DCA.<small>Balance the whole blend without hunting.</small></label></li>
+        <li><input type="checkbox" id="b3"><label for="b3"><b>"More Me"</b> — your bass, your vocal, your aux send.<small>Fast personal tweaks. Note it's the <em>send</em> you want here, not the fader — the fader won't change your ears.</small></label></li>
+        <li><input type="checkbox" id="b4"><label for="b4"><b>"Bus Master"</b> — per-player IEM select. <span class="ok">Already working.</span><small>Your build and troubleshoot page.</small></label></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 05 -->
+  <section class="sec" id="s5">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">05</span> · Listening tools</div>
+      <h2>Solo, Metering, RTA</h2>
+    </div>
+    <div class="sec-bd">
+      <ul class="check">
+        <li><input type="checkbox" id="c1"><label for="c1"><b>Solo → <span class="val">PFL</span> (pre-fader listen).</b><small>Lets you hear a channel regardless of its fader — the right mode for hunting a buzz or a dead cable.</small></label></li>
+        <li><input type="checkbox" id="c2"><label for="c2"><b>Confirm where Solo lands.</b><small>Your headphone out, and <b>not</b> the main or anyone's ears. Verify before you need it.</small></label></li>
+        <li><input type="checkbox" id="c3"><label for="c3"><b>Meters: <span class="val">post-processing</span>.</b><small>So the meter shows the signal <em>after</em> gain, EQ and dynamics — which is why a +3 dB EQ boost shows up on the meter and forces you to re-gain. That's a feature. Without it you'd never see it.</small></label></li>
+        <li><input type="checkbox" id="c4"><label for="c4"><b>Peak hold → auto-decay, ~<span class="val">2 seconds</span>.</b><small>Settings → App. A sticky peak marker captures your first bad note and then lies to you for the rest of the session. Decay turns it into a live readout.</small></label></li>
+        <li><input type="checkbox" id="c5"><label for="c5"><b>RTA → <span class="bad">Follow OFF</span> before a gig.</b><small>Brilliant at soundcheck. Live, you don't want the analyser chasing whatever channel you happen to tap.</small></label></li>
+      </ul>
+
+      <div class="why">
+        <b>The ambience mic is your room RTA.</b> The main-bus analyser shows what the console is <em>sending</em>, not what the room is <em>doing</em> — a bar booming at 60 Hz looks perfectly flat on the main bus. Point the RTA at the ambience channel and you're looking at the actual room. Not calibrated, so absolute numbers mean nothing. <b>Relative is all you need:</b> "there's a hump at 120" is the finding.
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section class="sec" id="s6">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">06</span> · The section that saves your afternoon</div>
+      <h2>Scenes, Scope &amp; Backup</h2>
+      <p>Two things in this app are called "Save/Load" and they do completely different jobs.</p>
+    </div>
+    <div class="sec-bd">
+
+      <div class="vs">
+        <div class="vsc bad">
+          <h3>✗ User Settings → Save/Load</h3>
+          <p>Saves <code>Layers</code>, <code>Layouts</code>, <code>RF Devices</code>, <code>Macros</code>. That's <b>how the app looks</b> — your fader banks and custom pages.</p>
+          <p><b>It contains none of your mixer state.</b> No gains, no EQ, no compressors, no routing. Save here believing you've backed up your console and you have backed up nothing.</p>
+        </div>
+        <div class="vsc good">
+          <h3>✓ Mixer view → MS Scenes</h3>
+          <p>The folder icon in the <b>Mixer</b> view. Saves the actual console: gains, filters, EQ, dynamics, routing, FX, DCAs.</p>
+          <p><b>This is the one that matters.</b> It also has <code>Scope</code>, <code>Copy</code>, <code>Paste</code> and <code>Share</code>.</p>
+        </div>
+      </div>
+
+      <div class="clip">
+        <div class="silk">▲ Clip — Channel Safes are the wrong tool</div>
+        <p>Channel Safes protect an entire channel from recall — <strong>including its EQ.</strong></p>
+        <p>Safe your bass and kick to protect their gain, and your <code>GIG / SUB</code> scene can no longer change their EQ or HPF — <strong>which is the only thing that scene does.</strong> You'd have safed the feature you built.</p>
+        <p><strong>Use <code>Scope</code> instead.</strong> It works per parameter group, not per channel. That's the tool that makes per-song FX recall safe: scope to <strong>FX only</strong> and a footswitch can flip the slapback without touching a single gain or one dB of room EQ.</p>
+      </div>
+
+      <ul class="check">
+        <li><input type="checkbox" id="d1"><label for="d1"><b>Derive scenes with <span class="val">Copy</span> / <span class="val">Paste</span>.</b><small>Build one properly, clone it, change only the delta. Same trick works for cloning an IEM bus.</small></label></li>
+        <li><input type="checkbox" id="d2"><label for="d2"><b>Scope the per-song FX scenes to <span class="val">FX only</span>.</b><small>No channels, no gains, no room EQ. Check the scope <em>every time</em> you save one.</small></label></li>
+        <li><input type="checkbox" id="d3"><label for="d3"><b><span class="bad">Share the file off the machine.</span></b><small>MS Scenes live in Mixing Station's own storage. That's one app reinstall from gone. Get a copy into a real directory — or better, a git repo.</small></label></li>
+        <li><input type="checkbox" id="d4"><label for="d4"><b>Keep a dated "known good" export.</b><small>After a practice where everything sounded right, export and date it. That's your rollback.</small></label></li>
+        <li><input type="checkbox" id="d5"><label for="d5"><b>Name everything clearly.</b><small><span class="val">Base</span> · <span class="val">GIG / NO SUB</span> · <span class="val">GIG / SUB</span> · <span class="val">GIG / HOUSE PA</span> · <span class="val">PRACTICE</span>. A mislabelled scene is how the wrong one gets loaded at 8:40 on a Friday.</small></label></li>
+      </ul>
+
+      <div class="tech">
+        <div class="silk">▲ The discipline that protects all of it</div>
+        <p><strong>Load the scene first. Tune second. Never reload.</strong></p>
+        <p>A full scene recall touches everything, <em>including preamp gain</em>. Bands have wiped an entire setup by loading what they thought was a safe scene. Once you've gain-staged for a room and dialled the GEQ, a recall throws both away.</p>
+        <p>If you need to change something mid-set, that's a <strong>scoped scene</strong> — never a full one.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 -->
+  <section class="sec" id="s7">
+    <div class="sec-hd">
+      <div class="silk"><span class="num">07</span> · Things that cost real time</div>
+      <h2>Gotchas</h2>
+    </div>
+    <div class="sec-bd">
+      <div class="grid">
+        <div class="row hot"><span class="k a">LR assign</span><span class="v">It's the green <b>LR badge in the channel strip header</b> — same row as +48V, LC, Gate, EQ, COMP. <b>Not in Routing.</b> Routing is physical I/O: which XLR feeds which channel. Un-assign click, talkback and ambience there so they physically cannot reach the room.</span></div>
+        <div class="row hot"><span class="k a">EQ freq</span><span class="v">The XR18 <b>quantises frequency to a fixed grid.</b> Ask for 50 and it lands on <b>50.8</b>. That's a quarter of a semitone. There is no setting that changes it, Fine mode doesn't help, and <b>it does not matter.</b> Stop fighting it.</span></div>
+        <div class="row hot"><span class="k a">Four dB scales</span><span class="v">Preamp gain, channel meter, fader, and GR meter are all labelled in dB, all inches apart, all measuring different things. <b>Gain stage against the channel meter. Nothing else.</b> Full explanation in the EQ &amp; FX Runbook §00.</span></div>
+        <div class="row hot"><span class="k a">Fader ≠ meter</span><span class="v">The <b>meter is an absolute readout</b> of the signal. The <b>fader is a control</b> that happens to be drawn next to it. A fader at unity says nothing about where the signal is sitting.</span></div>
+        <div class="row"><span class="k">FX returns</span><span class="v">They're <b>channels.</b> If <code>FxRet</code> isn't assigned to LR, your reverb goes nowhere and you'll blame the FX engine. <code>0.0 dB</code> on a return is <b>unity — wide open</b>, not off. Off is <code>−∞</code>.</span></div>
+        <div class="row"><span class="k">Slapback</span><span class="v">There's no "slapback" effect. It's a <b>Stereo Delay with <code>Feed L</code> and <code>Feed R</code> at 0%.</b> "Feed" means feedback. Any feedback at all and you've built an echo.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <b>Owned here</b> — send taps, DCAs, mute groups, layouts, solo/metering, scenes, backup.<br>
+    <b>PA Runbook</b> — filters, speaker panels, crossover, room tuning, power.<br>
+    <b>EQ &amp; FX Runbook</b> — gain staging method, EQ curves, compressor ratios, FX settings.<br>
+    <b>Practice Day Runbook</b> — gains, thresholds, house balance, six ear mixes.<br><br>
+    Sends are <b>pre-fader</b>. Faders and DCAs move the house and nothing else.
+  </footer>
+
+</main>
+
+<script>
+  var boxes = document.querySelectorAll('ul.check input[type=checkbox]');
+  var meter = document.getElementById('meter');
+  function paint(){
+    var done = 0;
+    boxes.forEach(function(b){
+      b.closest('li').classList.toggle('done', b.checked);
+      if (b.checked) done++;
+    });
+    meter.textContent = done + '/' + boxes.length;
+    meter.style.color = (done === boxes.length) ? 'var(--attn)' : (done === 0 ? 'var(--dim)' : 'var(--signal)');
+  }
+  boxes.forEach(function(b){ b.addEventListener('change', paint); });
+  paint();
+</script>
+
+</body>
+</html>
