@@ -4,6 +4,12 @@ Live-sound documentation and configuration for a **6-piece band running a self-c
 
 Everything here is meant to be grabbed quickly on a practice or gig day — the runbooks are self-contained HTML files you can open straight in a browser (including offline on a phone or tablet).
 
+## Live site
+
+Published via GitHub Pages — **[open the runbooks index](https://thefutant.github.io/XR18-IEM-runbooks/runbooks/)**.
+
+Individual runbooks open live too, e.g. the [PA runbook](https://thefutant.github.io/XR18-IEM-runbooks/runbooks/pa-runbook-eon612.html) or the [stage overview](https://thefutant.github.io/XR18-IEM-runbooks/runbooks/stage-overview.html).
+
 ## Contents
 
 ### `runbooks/` — open in any browser
