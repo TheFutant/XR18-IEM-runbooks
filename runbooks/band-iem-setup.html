@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Band IEM Setup</title>
+<style>
+  :root{
+    --bg:#0d0f12; --panel:#15181d; --panel2:#1b1f26; --edge:#2a2f38;
+    --ink:#e8ebef; --dim:#9aa3af; --amber:#f0a53d; --amber2:#ffca6b;
+    --green:#5fbf7d; --blue:#5aa9e6; --red:#e0685f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:linear-gradient(180deg,#0b0d10,#0d0f12 40%); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; line-height:1.55; padding:0 0 60px}
+  .wrap{max-width:680px; margin:0 auto; padding:16px}
+  header.top{position:sticky; top:0; z-index:20; background:rgba(13,15,18,.94); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--edge); padding:14px 16px}
+  header.top h1{font-size:18px; margin:0; letter-spacing:.5px; display:flex; align-items:center; gap:9px}
+  header.top h1 .dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+  .sub{color:var(--dim); font-size:13px; margin:10px 4px 4px}
+
+  .wifi{background:linear-gradient(135deg,#1c2530,#141b22); border:1px solid var(--blue); border-radius:14px; padding:16px; margin:14px 0; text-align:center}
+  .wifi .lbl{font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--blue)}
+  .wifi .val{font-size:22px; font-weight:700; letter-spacing:.5px; margin:2px 0 8px; font-family:ui-monospace,Menlo,Consolas,monospace}
+  .wifi .row{display:flex; justify-content:center; gap:26px; flex-wrap:wrap}
+  .wifi .row div{min-width:120px}
+
+  .step{display:flex; gap:14px; background:var(--panel); border:1px solid var(--edge); border-radius:14px; padding:16px; margin:12px 0}
+  .num{flex:none; width:34px; height:34px; border-radius:50%; background:var(--amber); color:#111; font-weight:800; font-size:17px; display:flex; align-items:center; justify-content:center}
+  .step h3{margin:2px 0 6px; font-size:16px}
+  .step p{margin:5px 0; font-size:14px}
+  .step p.small{color:var(--dim); font-size:13px}
+  .os{display:inline-block; font-size:11px; font-weight:700; padding:1px 8px; border-radius:20px; margin-right:6px}
+  .os.ios{background:#20303f; color:var(--blue); border:1px solid #2f4a5f}
+  .os.and{background:#22321f; color:var(--green); border:1px solid #2f4a2f}
+  .free{display:inline-block; font-size:11px; font-weight:700; padding:1px 9px; border-radius:20px; background:#22321f; color:var(--green); border:1px solid #2f4a2f; margin-left:6px}
+
+  .callout{background:var(--panel2); border-left:3px solid var(--green); border-radius:0 10px 10px 0; padding:11px 14px; margin:12px 0; font-size:14px}
+  .callout.blue{border-color:var(--blue)} .callout.amber{border-color:var(--amber)} .callout.red{border-color:var(--red)}
+  .callout b{color:var(--amber2)}
+
+  h2.section{font-size:13px; text-transform:uppercase; letter-spacing:1.4px; color:var(--amber); margin:28px 4px 8px; display:flex; align-items:center; gap:8px}
+  h2.section:before{content:""; width:14px; height:2px; background:var(--amber); display:inline-block}
+
+  details{background:var(--panel); border:1px solid var(--edge); border-radius:12px; margin:10px 0; overflow:hidden}
+  summary{cursor:pointer; padding:14px 16px; font-weight:600; font-size:15px; list-style:none; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  summary::-webkit-details-marker{display:none}
+  summary .chev{color:var(--dim); transition:transform .2s; font-size:12px}
+  details[open] summary .chev{transform:rotate(90deg)}
+  .body{padding:0 16px 16px}
+  ol.dan{padding-left:20px} ol.dan li{margin:8px 0; font-size:14px}
+  ol.dan b{color:var(--amber2)}
+
+  table{width:100%; border-collapse:collapse; margin:10px 0; font-size:14px}
+  th,td{border:1px solid var(--edge); padding:8px 10px; text-align:left}
+  th{background:var(--panel2); color:var(--amber); font-size:12px; text-transform:uppercase; letter-spacing:.5px}
+  td.fill{color:var(--dim); font-style:italic}
+
+  footer{margin-top:26px; text-align:center; color:var(--dim); font-size:12px; padding:0 16px}
+  code{background:var(--panel2); border:1px solid var(--edge); border-radius:5px; padding:1px 6px; font-size:13px}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1><span class="dot"></span> BAND IEM SETUP</h1>
+</header>
+
+<div class="wrap">
+  <p class="sub">Get your in-ears working from your phone. About 3 minutes the first time. The app is <b>free</b> and you'll only ever control <b>your own</b> ear mix &mdash; you can't touch the mains or anyone else's ears.</p>
+
+  <div class="wifi">
+    <div class="row">
+      <div>
+        <div class="lbl">Wi-Fi Network</div>
+        <div class="val">BandNet</div>
+      </div>
+      <div>
+        <div class="lbl">Password</div>
+        <div class="val">goraiders</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">1</div>
+    <div>
+      <h3>Install Mixing Station <span class="free">FREE</span></h3>
+      <p><span class="os ios">iPhone</span> App Store &rarr; search <b>&ldquo;Mixing Station&rdquo;</b> &rarr; install.</p>
+      <p><span class="os and">Android</span> Google Play &rarr; search <b>&ldquo;Mixing Station&rdquo;</b> &rarr; install.</p>
+      <p class="small">Blue mixing-desk icon. Get the plain free one &mdash; you do <b>not</b> need to buy anything to mix your own ears.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">2</div>
+    <div>
+      <h3>Join the Wi-Fi</h3>
+      <p>Phone Settings &rarr; Wi-Fi &rarr; connect to <b>BandNet</b>, password <b>goraiders</b>.</p>
+      <p class="small">No internet on this network &mdash; that's normal, it's just for the mixer. If your phone asks &ldquo;no internet, stay connected?&rdquo; tap <b>yes / keep</b>.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">3</div>
+    <div>
+      <h3>Connect in Personal Monitoring mode</h3>
+      <p>Open the app &mdash; it finds the <b>XR18</b> on the network. When you set up the connection, choose <b>Personal Monitoring</b>, then pick <b>your name / aux</b>.</p>
+      <p class="small">First launch only: if it asks for a mixer type, pick <b>Behringer &rarr; X-Air / XR18</b>. Or just hand it to Dan for 30 seconds &mdash; he'll set the connection once and it sticks.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">4</div>
+    <div>
+      <h3>Dial your ears</h3>
+      <p>You're now on <b>your mix only</b>. The faders are how loud each person is <b>in your ears</b>. Bring <b>yourself</b> up first, then balance vocals, drums, and everyone else to taste.</p>
+    </div>
+  </div>
+
+  <div class="callout"><b>Relax &mdash; you can't break anything.</b> Personal Monitoring mode means your phone can <b>only</b> change your own ear mix. The main speakers and everyone else's ears are untouchable from your phone.</div>
+
+  <h2 class="section">If Something's Off</h2>
+  <div class="callout blue"><b>App can't find the mixer?</b> Make sure you're on <b>BandNet</b> (not home Wi-Fi or cell data), then close and reopen the app.</div>
+  <div class="callout blue"><b>No sound in your ears?</b> Check your belt-pack is on, buds/cable seated, pack volume up &mdash; then bring your channels up in the app.</div>
+  <div class="callout amber"><b>Can't get to something / asked for a password?</b> That's the FOH lock doing its job &mdash; you only get your own mix. Grab Dan if you're stuck.</div>
+
+  <h2 class="section">Aux Assignments</h2>
+  <table>
+    <tr><th>Aux</th><th>Member</th><th>Instrument</th></tr>
+    <tr><td><b>Aux 1</b></td><td>Dan</td><td>Bass / Vox</td></tr>
+    <tr><td><b>Aux 2</b></td><td>Robert</td><td>Drums</td></tr>
+    <tr><td><b>Aux 3</b></td><td>Rob</td><td>Keys</td></tr>
+    <tr><td><b>Aux 4</b></td><td>Pappy</td><td>Guitar / Vox</td></tr>
+    <tr><td><b>Aux 5</b></td><td>Jamie</td><td>Guitar</td></tr>
+    <tr><td><b>Aux 6</b></td><td>Kevin</td><td>Lead Vox</td></tr>
+  </table>
+  <p class="sub">In Personal Monitoring you just pick your own name/aux &mdash; find your row above and there's nothing to mess up.</p>
+
+  <h2 class="section">Setup Notes &mdash; Dan Only</h2>
+  <details>
+    <summary><span>Personal Monitoring + FOH lock <span class="chev">&#9654;</span></span></summary>
+    <div class="body">
+      <p style="font-size:13px;color:var(--amber2);font-weight:600;margin-top:12px">A. Personal Monitoring (per phone, free app)</p>
+      <ol class="dan">
+        <li>In the connection profile, select <b>Personal Monitoring</b>, then choose that member's bus. This limits the phone to its own monitor mix &mdash; can't reach FOH or other mixes by design.</li>
+        <li>Want them to EQ their own ears? Enable <b>Bus processing</b> in global settings. Leave it off for level-only control.</li>
+        <li>Optional: hide the bus master fader (global settings) to keep it dead simple.</li>
+        <li>No license needed on their end &mdash; Personal Monitoring runs on the free app.</li>
+      </ol>
+      <p style="font-size:13px;color:var(--amber2);font-weight:600;margin-top:14px">B. Insurance &mdash; password-lock the mains (on the mixer, once)</p>
+      <ol class="dan">
+        <li>In Mixing Station: <b>Menu &rarr; Setup &rarr; Security</b>.</li>
+        <li>Enter a <b>password</b> (yours to keep).</li>
+        <li>Protect <b>Main LR</b> &mdash; this locks the full &ldquo;no restrictions&rdquo; mode so no one can leave monitor mode into the main mix without the password.</li>
+        <li>Press back to save to the XR18. <span style="color:var(--dim)">Stored in the XR18's 64th snapshot &mdash; don't overwrite/delete that slot in XAIR-Edit or the lock resets.</span></li>
+      </ol>
+      <div class="callout amber"><b>Licensing:</b> your one-time XR18 license covers your full-access device(s) &mdash; activatable on up to 4 devices of the same platform. Band members in Personal Monitoring don't consume it; they run the free app.</div>
+    </div>
+  </details>
+
+  <footer>
+    <p>Band IEM Setup &middot; questions &rarr; Dan</p>
+  </footer>
+</div>
+</body>
+</html>
