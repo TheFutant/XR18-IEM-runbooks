@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bass Tone Lab</title>
+<style>
+  :root{
+    --bg:#0d0f12; --panel:#15181d; --panel2:#1b1f26; --edge:#2a2f38;
+    --ink:#e8ebef; --dim:#9aa3af; --amber:#f0a53d; --amber2:#ffca6b;
+    --green:#5fbf7d; --blue:#5aa9e6; --red:#e0685f; --purple:#b088e0;
+    --knob:#0a0c0f;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:linear-gradient(180deg,#0b0d10,#0d0f12 40%);
+    color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5; padding:0 0 60px;
+  }
+  .wrap{max-width:900px; margin:0 auto; padding:16px}
+  header.top{
+    position:sticky; top:0; z-index:20; background:rgba(13,15,18,.92);
+    backdrop-filter:blur(8px); border-bottom:1px solid var(--edge);
+    padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+  }
+  header.top h1{font-size:17px; margin:0; letter-spacing:.5px; display:flex; align-items:center; gap:9px}
+  header.top h1 .dot{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px var(--amber)}
+  .sub{color:var(--dim); font-size:12px}
+  .prog{display:flex; align-items:center; gap:8px; font-size:11px; color:var(--dim)}
+  .bar{width:90px; height:6px; background:var(--panel2); border-radius:4px; overflow:hidden; border:1px solid var(--edge)}
+  .bar>i{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--amber),var(--amber2)); transition:width .3s}
+
+  h2.section{font-size:13px; text-transform:uppercase; letter-spacing:1.4px; color:var(--amber); margin:26px 4px 10px; display:flex; align-items:center; gap:8px}
+  h2.section:before{content:""; width:14px; height:2px; background:var(--amber); display:inline-block}
+
+  /* signal chain */
+  .chain{display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:var(--panel); border:1px solid var(--edge); border-radius:12px; padding:14px}
+  .node{background:var(--panel2); border:1px solid var(--edge); border-radius:8px; padding:6px 10px; font-size:12px; white-space:nowrap}
+  .node.hot{border-color:var(--amber); color:var(--amber2)}
+  .node.di{border-color:var(--blue); color:var(--blue)}
+  .arrow{color:var(--dim); font-size:13px}
+  .loopbox{border:1px dashed var(--edge); border-radius:8px; padding:6px 8px; display:flex; flex-direction:column; gap:5px}
+  .loopbox .lbl{font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--dim)}
+  .loopbox.a{border-color:var(--green)}
+  .loopbox.b{border-color:var(--purple)}
+  .loopbox.a .lbl{color:var(--green)}
+  .loopbox.b .lbl{color:var(--purple)}
+  .mini{display:flex; gap:5px; flex-wrap:wrap; align-items:center}
+
+  details{background:var(--panel); border:1px solid var(--edge); border-radius:12px; margin:10px 0; overflow:hidden}
+  details[open]{border-color:#39414d}
+  summary{cursor:pointer; padding:14px 16px; font-weight:600; font-size:14px; list-style:none; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  summary::-webkit-details-marker{display:none}
+  summary .chev{color:var(--dim); transition:transform .2s; font-size:12px}
+  details[open] summary .chev{transform:rotate(90deg)}
+  summary .tag{font-size:10px; padding:2px 8px; border-radius:20px; border:1px solid var(--edge); color:var(--dim); text-transform:uppercase; letter-spacing:.5px}
+  .tag.always{color:var(--green); border-color:var(--green)}
+  .tag.stomp{color:var(--amber2); border-color:var(--amber)}
+  .tag.texture{color:var(--purple); border-color:var(--purple)}
+  .tag.di{color:var(--blue); border-color:var(--blue)}
+  .body{padding:2px 16px 16px}
+
+  /* knob rows */
+  .knobs{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px; margin:10px 0}
+  .knob{background:var(--panel2); border:1px solid var(--edge); border-radius:10px; padding:10px; text-align:center}
+  .knob .k-name{font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:.6px}
+  .knob .k-val{font-size:14px; color:var(--amber2); font-weight:600; margin-top:3px}
+  .knob .k-dial{width:44px;height:44px;border-radius:50%;margin:8px auto 4px; background:radial-gradient(circle at 50% 40%,#20242c,var(--knob)); border:1px solid var(--edge); position:relative}
+  .knob .k-dial:after{content:""; position:absolute; width:2px; height:16px; background:var(--amber2); left:50%; top:5px; transform-origin:bottom center; transform:translateX(-50%) rotate(var(--rot,0deg))}
+  .knob.sw .k-dial{background:var(--panel); }
+  .knob.sw .k-dial:after{display:none}
+  .knob.sw .k-dial .pill{position:absolute; inset:14px 8px; border-radius:6px; background:var(--green)}
+  .knob.off .k-dial .pill{background:#3a3f48}
+
+  ul.notes{margin:8px 0 0; padding-left:18px}
+  ul.notes li{margin:4px 0; font-size:13.5px}
+  .callout{background:var(--panel2); border-left:3px solid var(--amber); border-radius:0 8px 8px 0; padding:9px 12px; margin:10px 0; font-size:13px}
+  .callout.blue{border-color:var(--blue)}
+  .callout.red{border-color:var(--red)}
+  .callout.green{border-color:var(--green)}
+  .callout b{color:var(--amber2)}
+
+  /* checklist */
+  .check{display:flex; gap:10px; align-items:flex-start; padding:9px 10px; border:1px solid var(--edge); border-radius:9px; margin:7px 0; background:var(--panel2); cursor:pointer}
+  .check input{margin-top:3px; width:17px; height:17px; accent-color:var(--amber); flex:none}
+  .check .c-txt{font-size:13.5px}
+  .check .c-txt b{color:var(--amber2)}
+  .check.done .c-txt{color:var(--dim); text-decoration:line-through}
+
+  /* mode table */
+  .modes{display:grid; gap:10px}
+  .mode{background:var(--panel); border:1px solid var(--edge); border-radius:12px; padding:12px 14px}
+  .mode h3{margin:0 0 6px; font-size:14px; display:flex; align-items:center; gap:8px}
+  .mode h3 .pip{width:8px;height:8px;border-radius:50%}
+  .mode .row{font-size:13px; color:var(--dim); margin:3px 0}
+  .mode .row b{color:var(--ink); font-weight:600}
+  .on{color:var(--green); font-weight:600}
+  .offc{color:var(--red)}
+
+  footer{margin-top:30px; text-align:center; color:var(--dim); font-size:11px; padding:0 16px}
+  a{color:var(--blue)}
+  .reset{background:none; border:1px solid var(--edge); color:var(--dim); font-size:11px; padding:4px 10px; border-radius:6px; cursor:pointer}
+  .reset:hover{color:var(--ink); border-color:var(--dim)}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1><span class="dot"></span> BASS TONE LAB</h1>
+  <div class="prog">
+    <span id="pct">0%</span>
+    <span class="bar"><i id="barfill"></i></span>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="sub">Yamaha BB735A (P/J, active/passive) &rarr; pedalboard &rarr; SansAmp DI &rarr; Hartke LX5500 + HD210. Setup, gain staging, and per-song modes. Check-state saves on this device.</p>
+
+  <!-- SIGNAL CHAIN -->
+  <h2 class="section">Signal Chain</h2>
+  <div class="chain">
+    <span class="node">Bass</span><span class="arrow">&rarr;</span>
+    <span class="node">Tuner</span><span class="arrow">&rarr;</span>
+    <span class="node">LS-2</span>
+    <div class="loopbox a">
+      <span class="lbl">Loop A &mdash; clean/grit</span>
+      <div class="mini"><span class="node">Bass Soul Food</span></div>
+    </div>
+    <div class="loopbox b">
+      <span class="lbl">Loop B &mdash; texture</span>
+      <div class="mini">
+        <span class="node">Octave Reverb</span><span class="arrow">&rarr;</span>
+        <span class="node">MS-60B</span><span class="arrow">&rarr;</span>
+        <span class="node">Bass Clone</span><span class="arrow">&rarr;</span>
+        <span class="node">Big Muff</span>
+      </div>
+    </div>
+    <span class="arrow">&rarr;</span>
+    <span class="node hot">Harmonic Booster</span><span class="arrow">&rarr;</span>
+    <span class="node di">SansAmp DI</span>
+  </div>
+  <div class="chain" style="margin-top:8px">
+    <span class="node di">SansAmp XLR</span><span class="arrow">&rarr;</span><span class="node">FOH / Recording</span>
+    <span class="arrow" style="margin:0 6px">|</span>
+    <span class="node di">SansAmp Parallel Out (dry)</span><span class="arrow">&rarr;</span><span class="node">LX5500 Input</span><span class="arrow">&rarr;</span><span class="node">HD210 + amp DI &rarr; IEM</span>
+  </div>
+  <div class="callout blue">Parallel Out carries your <b>full board</b> (it's only dry of the SansAmp's own amp-sim), so the Hartke's tube pre + comp shape your real pedal tone. SansAmp XLR gives FOH the fully-baked DI.</div>
+
+  <!-- HOUSE TONE -->
+  <h2 class="section">House Tone &mdash; Thick / Warm / Thumping</h2>
+  <div class="callout green"><b>North star for this project:</b> thick, warm, thumping fingerstyle bass, built from the core path. Loop B textures are <b>parked</b> &mdash; available, not featured with this band. The Stax 5-band EQ is owned but off the board for now.</div>
+  <details open>
+    <summary><span>The thick-warm-thump recipe <span class="chev">&#9654;</span></span><span class="tag always">voicing</span></summary>
+    <div class="body">
+      <ul class="notes">
+        <li><b>Bass &mdash; favor the P (neck) pickup</b> for fundamental thump; dial the J back (it adds growl/bite). Play closer to the neck for a rounder attack.</li>
+        <li><b>Passive mode</b> is the warm, vintage-thump voice &mdash; rounder and fatter. Roll the tone (treble knob) back a touch. Use active only when you need more output/clarity, and keep the treble down.</li>
+        <li><b>Amp: Brite OFF.</b> Bass slightly up, treble at/below noon, and <b>don't scoop the mids</b> &mdash; low-mid body (~200&ndash;400 Hz) is what makes it thump in the mix, not just on stage.</li>
+        <li><b>Compressor ~10:00</b> for even, punchy thump. Push <b>Gain</b> enough to warm the 12AX7 (Drive still off).</li>
+        <li><b>SansAmp = warmth engine:</b> Drive 9&ndash;10, Blend ~10&ndash;11 for harmonic thickness; Bass at/just above noon, Presence low.</li>
+        <li><b>Harmonic Booster:</b> a touch always-on (Character adds harmonics + mid presence) helps the tone sit thick and consistent &mdash; the one case to lean toward always-on over stomp. Your call.</li>
+        <li><b>Soul Food</b> stays a pick-song tool; a hair fingerstyle adds harmonic warmth if wanted.</li>
+      </ul>
+      <div class="callout"><b>Where each trait comes from:</b> thump = pickup choice + low mids + compression. Warmth = passive/tone-down + tube gain + SansAmp. Restraint up top = Brite off + treble down.</div>
+    </div>
+  </details>
+
+  <!-- GAIN STAGING -->
+  <h2 class="section">Gain Staging &mdash; Bass to Room</h2>
+  <div class="callout"><b>Mantra:</b> tone with <b>Gain</b>, volume with <b>Master</b>, Drive off. On a combo these were one knob &mdash; now they're separate stages.</div>
+
+  <label class="check" data-k="gs1"><input type="checkbox"><span class="c-txt"><b>Reference the hot signal.</b> Yamaha in <b>active</b> mode, volume full, onboard EQ flat. Stage for active so passive never clips &mdash; it just sits with more headroom.</span></label>
+  <label class="check" data-k="gs2"><input type="checkbox"><span class="c-txt"><b>Set Gain with your loudest board signal on.</b> Stomp Big Muff + Harmonic Booster, dig in hard, raise <b>Gain</b> until the peak LED just flickers on the hardest hits &mdash; then back off a hair.</span></label>
+  <label class="check" data-k="gs3"><input type="checkbox"><span class="c-txt"><b>Drive: minimum / off.</b> Grit lives on the board (Soul Food, Muff), not the amp.</span></label>
+  <label class="check" data-k="gs4"><input type="checkbox"><span class="c-txt"><b>Compressor: start ~9:00, gentle.</b> This covers the old SpectraComp duty. Stop before it kills sustain.</span></label>
+  <label class="check" data-k="gs5"><input type="checkbox"><span class="c-txt"><b>EQ mostly flat, shape to the room.</b> Bass/Treble ~noon, Frequency/Shape to taste, <b>Brite</b> button as flavor (your Rumble-Vintage substitute).</span></label>
+  <label class="check" data-k="gs6"><input type="checkbox"><span class="c-txt"><b>DI XLR &rarr; post-EQ</b> for the amp DI feeding IEM, so your ears get the tube pre + comp + EQ you actually dialed.</span></label>
+  <label class="check" data-k="gs7"><input type="checkbox"><span class="c-txt"><b>Master up last</b> to gig volume.</span></label>
+  <div class="callout red">Active/passive level jump is normal &mdash; don't chase it with the amp. If the drop bugs you live, nudge the Yamaha's onboard, not the head.</div>
+
+  <!-- AMP -->
+  <h2 class="section">Amp &mdash; Hartke LX5500</h2>
+  <details open>
+    <summary><span>LX5500 + HD210 starting settings <span class="chev">&#9654;</span></span><span class="tag di">head</span></summary>
+    <div class="body">
+      <div class="knobs">
+        <div class="knob"><div class="k-name">Gain</div><div class="k-dial" style="--rot:20deg"></div><div class="k-val">set by peak LED</div></div>
+        <div class="knob off"><div class="k-name">Drive</div><div class="k-dial" style="--rot:-135deg"></div><div class="k-val">off / min</div></div>
+        <div class="knob"><div class="k-name">Compressor</div><div class="k-dial" style="--rot:-70deg"></div><div class="k-val">~9:00</div></div>
+        <div class="knob"><div class="k-name">Bass</div><div class="k-dial" style="--rot:0deg"></div><div class="k-val">noon</div></div>
+        <div class="knob"><div class="k-name">Treble</div><div class="k-dial" style="--rot:0deg"></div><div class="k-val">noon</div></div>
+        <div class="knob"><div class="k-name">Freq / Shape</div><div class="k-dial" style="--rot:0deg"></div><div class="k-val">to taste</div></div>
+        <div class="knob sw"><div class="k-name">Brite</div><div class="k-dial"><span class="pill"></span></div><div class="k-val">flavor</div></div>
+        <div class="knob"><div class="k-name">Master</div><div class="k-dial" style="--rot:-40deg"></div><div class="k-val">to room</div></div>
+      </div>
+      <ul class="notes">
+        <li>Feed from <b>SansAmp Parallel Out</b>, instrument level.</li>
+        <li>Keep it mostly flat and shape to the room, same habit as your combos.</li>
+        <li>Let the onboard compressor pick up the transient control the SpectraComp used to do.</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- PEDALS -->
+  <h2 class="section">Pedal Settings</h2>
+
+  <details>
+    <summary><span>Boss LS-2 &mdash; permanent parallel mixer <span class="chev">&#9654;</span></span><span class="tag always">always A+B</span></summary>
+    <div class="body">
+      <div class="callout green"><b>Always in A+B Mix &mdash; never switch loops.</b> The LS-2 is a fixed parallel mixer: <b>Loop A is a permanent clean anchor</b> summed in at all times, so Loop B can get weird without ever gutting the low end. You change sounds at the individual pedals, not here.</div>
+      <ul class="notes">
+        <li><b>Loop A</b> = clean/grit anchor (Soul Food off = clean, on = pick grit). Always present.</li>
+        <li><b>Loop B</b> = texture, engaged pedal-by-pedal. Its clean fundamental is redundant &mdash; let Loop A own the lows. <b>Note:</b> the Muff crossover HPF only rolls off lows when the fuzz is on, so it can't be your always-on control. For a permanent Loop B low roll-off, add a <b>5-band EQ last in Loop B</b> &mdash; cut ~60&ndash;80 Hz hard and ~120&ndash;150 Hz moderately, mids/highs flat-to-boosted. (Bass Clone X-Over ON also helps hold its own lows.)</li>
+        <li>Balance A/B levels by ear at practice volume &mdash; more A for solid, more B for wash.</li>
+        <li><b>Watch:</b> the MS-60B adds a hair of digital latency when a patch is active. If lows go hollow with a Zoom patch on, that's Loop B vs Loop A phase &mdash; set the MS-60B to true bypass when idle and keep Loop B high-passed.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>EHX Bass Soul Food &mdash; Loop A <span class="chev">&#9654;</span></span><span class="tag stomp">pick songs</span></summary>
+    <div class="body">
+      <div class="knobs">
+        <div class="knob"><div class="k-name">Volume</div><div class="k-dial" style="--rot:0deg"></div><div class="k-val">unity</div></div>
+        <div class="knob"><div class="k-name">Drive</div><div class="k-dial" style="--rot:-70deg"></div><div class="k-val">9:00&ndash;11:00</div></div>
+        <div class="knob"><div class="k-name">Treble</div><div class="k-dial" style="--rot:-30deg"></div><div class="k-val">~11:00</div></div>
+      </div>
+      <div class="callout green">New role: <b>engage for plectrum songs.</b> Light OD tames the spiky pick transient and adds grit that suits the attack. Ease Treble back so you get grit without clank. Off = Loop A passes clean for fingerstyle.</div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>JHS Octave Reverb &mdash; Loop B, first <span class="chev">&#9654;</span></span><span class="tag texture">texture</span></summary>
+    <div class="body">
+      <div class="knobs">
+        <div class="knob"><div class="k-name">Octave</div><div class="k-dial" style="--rot:-90deg"></div><div class="k-val">8:30&ndash;10:00</div></div>
+        <div class="knob"><div class="k-name">Decay</div><div class="k-dial" style="--rot:-120deg"></div><div class="k-val">low, ~8:00</div></div>
+        <div class="knob"><div class="k-name">Reverb/Mix</div><div class="k-dial" style="--rot:-135deg"></div><div class="k-val">very low</div></div>
+      </div>
+      <ul class="notes">
+        <li>Use it as an octave/thickening pedal more than a big reverb. Keep octave conservative for bass; feeds the rest of Loop B.</li>
+        <li>Push reverb only for intentional ambient parts.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>Zoom MS-60B &mdash; Loop B, pre-fuzz <span class="chev">&#9654;</span></span><span class="tag texture">texture</span></summary>
+    <div class="body">
+      <div class="callout">Current patch idea: <b>Auto Wah &rarr; single PEQ &rarr;</b> (into chorus/fuzz). PEQ focuses the growl before the Muff &mdash; more vocal synth-bass, less fizz.</div>
+      <ul class="notes">
+        <li>PEQ: <b>Freq 750 Hz</b> (600 if honky, 900 if disappearing), <b>Gain +2&ndash;3 dB</b>, medium Q, unity level.</li>
+        <li>If Auto Wah is too quacky, instead cut ~1.2 kHz by &minus;2 dB.</li>
+        <li>Other lanes to try: slow phaser/flanger, synth-bass patch, utility pre-fuzz EQ. Leave normal chorus to the Bass Clone.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>EHX Bass Clone &mdash; Loop B, before fuzz <span class="chev">&#9654;</span></span><span class="tag texture">priority sound</span></summary>
+    <div class="body">
+      <div class="knobs">
+        <div class="knob sw"><div class="k-name">X-Over</div><div class="k-dial"><span class="pill"></span></div><div class="k-val">ON</div></div>
+        <div class="knob"><div class="k-name">Depth</div><div class="k-dial" style="--rot:0deg"></div><div class="k-val">noon</div></div>
+        <div class="knob"><div class="k-name">Rate</div><div class="k-dial" style="--rot:-90deg"></div><div class="k-val">slow ~8:30</div></div>
+        <div class="knob"><div class="k-name">Bass</div><div class="k-dial" style="--rot:10deg"></div><div class="k-val">12:30</div></div>
+        <div class="knob"><div class="k-name">Treble</div><div class="k-dial" style="--rot:10deg"></div><div class="k-val">12:30</div></div>
+      </div>
+      <div class="callout"><b>Now before the Muff.</b> Chorus &rarr; fuzz = thicker, warblier, more seasick wash (very Cure). Keep <b>X-Over ON</b> and use the Muff's crossover to hold the lows &mdash; otherwise the fuzz re-muddies what the chorus did. Post-fuzz voicing feel: Depth 10:30&ndash;noon, Rate ~8:00, Bass noon, Treble ~11:30.</div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>Deluxe Bass Big Muff &mdash; Loop B, last <span class="chev">&#9654;</span></span><span class="tag texture">fuzz</span></summary>
+    <div class="body">
+      <div class="knobs">
+        <div class="knob"><div class="k-name">Volume</div><div class="k-dial" style="--rot:0deg"></div><div class="k-val">unity</div></div>
+        <div class="knob"><div class="k-name">Blend</div><div class="k-dial" style="--rot:45deg"></div><div class="k-val">~1:30</div></div>
+        <div class="knob"><div class="k-name">Tone</div><div class="k-dial" style="--rot:-60deg"></div><div class="k-val">~10:00</div></div>
+        <div class="knob"><div class="k-name">Sustain</div><div class="k-dial" style="--rot:-30deg"></div><div class="k-val">~11:00</div></div>
+        <div class="knob off"><div class="k-name">Gate</div><div class="k-dial" style="--rot:-135deg"></div><div class="k-val">off / barely</div></div>
+      </div>
+      <div class="callout green"><b>Crossover synth mode</b> (tighter, keeps clean lows): HPF ~1:30, LPF ~10:00. Fuzz sits in the mids/highs while clean body passes &mdash; the fix for chorus-into-fuzz mud. Crossover off for normal full fuzz.</div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>Darkglass Harmonic Booster &mdash; after LS-2 <span class="chev">&#9654;</span></span><span class="tag stomp">stomp: mid-forward</span></summary>
+    <div class="body">
+      <div class="knobs">
+        <div class="knob"><div class="k-name">Boost/Level</div><div class="k-dial" style="--rot:-25deg"></div><div class="k-val">unity to +1&ndash;2dB</div></div>
+        <div class="knob"><div class="k-name">Character</div><div class="k-dial" style="--rot:0deg"></div><div class="k-val">noon</div></div>
+        <div class="knob"><div class="k-name">Bass</div><div class="k-dial" style="--rot:-10deg"></div><div class="k-val">~11:30&ndash;noon</div></div>
+        <div class="knob"><div class="k-name">Mid Gain</div><div class="k-dial" style="--rot:15deg"></div><div class="k-val">12:30</div></div>
+        <div class="knob"><div class="k-name">Mid Freq</div><div class="k-dial" style="--rot:-15deg"></div><div class="k-val">~750 Hz</div></div>
+        <div class="knob"><div class="k-name">Treble</div><div class="k-dial" style="--rot:-10deg"></div><div class="k-val">~11:30</div></div>
+      </div>
+      <div class="callout"><b>New role: stompable, not always-on.</b> Kick it in for mid-forward songs or where the bass steps forward (choruses). Set Level near unity so it's a mid/presence shift &mdash; lean +1&ndash;2 dB if you want those sections to lift in level too. <b>Key:</b> dial your baseline DI tone to sound finished with this OFF, so it's a lift, not a crutch.</div>
+      <div class="callout red">If it hurts Loop B: lower Boost &rarr; lower Treble &rarr; lower Mid Gain &rarr; drop Mid Freq &rarr; lower SansAmp Presence.</div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span>Tech 21 SansAmp Bass Driver DI &mdash; final stage <span class="chev">&#9654;</span></span><span class="tag di">DI</span></summary>
+    <div class="body">
+      <div class="knobs">
+        <div class="knob"><div class="k-name">Drive</div><div class="k-dial" style="--rot:-90deg"></div><div class="k-val">9:00&ndash;10:00</div></div>
+        <div class="knob"><div class="k-name">Blend</div><div class="k-dial" style="--rot:-80deg"></div><div class="k-val">~10:00&ndash;10:30</div></div>
+        <div class="knob"><div class="k-name">Bass</div><div class="k-dial" style="--rot:0deg"></div><div class="k-val">noon</div></div>
+        <div class="knob"><div class="k-name">Treble</div><div class="k-dial" style="--rot:-20deg"></div><div class="k-val">11:30&ndash;noon</div></div>
+        <div class="knob"><div class="k-name">Presence</div><div class="k-dial" style="--rot:-80deg"></div><div class="k-val">low ~9:30</div></div>
+        <div class="knob"><div class="k-name">Level</div><div class="k-dial" style="--rot:0deg"></div><div class="k-val">unity</div></div>
+      </div>
+      <ul class="notes">
+        <li>Used mildly as a DI / gain-stage checkpoint, not the main overdrive.</li>
+        <li><b>XLR &rarr; FOH/interface:</b> instrument level to start. <b>Parallel Out &rarr; amp:</b> instrument level.</li>
+        <li><b>Ground:</b> normal; flip to <b>lift</b> if the XLR-to-board + amp connection hums.</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- PER-SONG MODES -->
+  <h2 class="section">Per-Song Modes</h2>
+  <div class="modes">
+    <div class="mode">
+      <h3><span class="pip" style="background:var(--green)"></span>Default &mdash; fingerstyle</h3>
+      <div class="row"><b>Soul Food</b> <span class="offc">OFF</span> &middot; <b>Harmonic Booster</b> <span class="offc">OFF</span> &middot; Loop B pedals <span class="offc">OFF</span></div>
+      <div class="row">Clean supportive bass. LS-2 stays A+B; both loops pass clean; amp + SansAmp are your finished baseline tone.</div>
+    </div>
+    <div class="mode">
+      <h3><span class="pip" style="background:var(--amber)"></span>Pick songs</h3>
+      <div class="row"><b>Soul Food</b> <span class="on">ON</span> &middot; Booster to taste</div>
+      <div class="row">Warm OD tames pick transient, adds grit and presence for plectrum passages.</div>
+    </div>
+    <div class="mode">
+      <h3><span class="pip" style="background:var(--amber2)"></span>Mid-forward / choruses</h3>
+      <div class="row"><b>Harmonic Booster</b> <span class="on">ON</span></div>
+      <div class="row">Mid/presence lift (+1&ndash;2 dB) so the bass steps forward. Stackable with Soul Food.</div>
+    </div>
+    <div class="mode">
+      <h3><span class="pip" style="background:var(--purple)"></span>Texture / atmosphere <span style="font-size:11px;color:var(--dim);font-weight:400">(parked this band)</span></h3>
+      <div class="row">Engage <b>Loop B pedals</b> individually &middot; clean from Loop A always underneath</div>
+      <div class="row">Octave/chorus/fuzz wash for Cure &amp; Tool moments &mdash; on the bench for this project, ready when a song calls for it.</div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Bass Tone Lab &middot; living doc &mdash; ping me to add pedals, songs, or dial changes.</p>
+    <button class="reset" onclick="if(confirm('Clear all saved checkboxes and open sections?')){localStorage.clear();location.reload();}">Reset saved state</button>
+  </footer>
+</div>
+
+<script>
+(function(){
+  // Persist checkboxes
+  var checks = document.querySelectorAll('.check');
+  function saveCheck(k,v){ try{localStorage.setItem('btl_'+k, v?'1':'0');}catch(e){} }
+  checks.forEach(function(c){
+    var key=c.getAttribute('data-k');
+    var box=c.querySelector('input');
+    var saved=null;
+    try{saved=localStorage.getItem('btl_'+key);}catch(e){}
+    if(saved==='1'){ box.checked=true; c.classList.add('done'); }
+    box.addEventListener('change',function(){
+      c.classList.toggle('done',box.checked);
+      saveCheck(key,box.checked);
+      updateProg();
+    });
+  });
+  // Persist <details> open state
+  var dets=document.querySelectorAll('details');
+  dets.forEach(function(d,i){
+    var key='det_'+i;
+    var s=null; try{s=localStorage.getItem('btl_'+key);}catch(e){}
+    if(s==='1') d.open=true; if(s==='0') d.open=false;
+    d.addEventListener('toggle',function(){ try{localStorage.setItem('btl_'+key, d.open?'1':'0');}catch(e){} });
+  });
+  // Progress from gain-staging checklist
+  function updateProg(){
+    var total=checks.length, done=0;
+    checks.forEach(function(c){ if(c.querySelector('input').checked) done++; });
+    var pct= total? Math.round(done/total*100):0;
+    document.getElementById('pct').textContent=pct+'%';
+    document.getElementById('barfill').style.width=pct+'%';
+  }
+  updateProg();
+})();
+</script>
+</body>
+</html>
