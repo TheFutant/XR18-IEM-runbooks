@@ -19,6 +19,7 @@ Individual runbooks open live too, e.g. the [PA runbook](https://thefutant.githu
 | [`stage-overview.html`](runbooks/stage-overview.html) | Stage plot and signal flow for the 6-piece, self-contained PA setup |
 | [`practice-day-runbook.html`](runbooks/practice-day-runbook.html) | Step-by-step setup and teardown for a practice with the full band present |
 | [`pa-runbook-eon612.html`](runbooks/pa-runbook-eon612.html) | Front-of-house PA setup for 2× JBL EON612 + XR18 |
+| [`band-iem-setup.html`](runbooks/band-iem-setup.html) | Band-member onboarding sheet — get your IEM mix working from your phone (Mixing Station, Personal Monitoring) |
 | [`iem_midi_footswitch_runbook.html`](runbooks/iem_midi_footswitch_runbook.html) | MIDI footswitch wiring and mapping for hands-free IEM control |
 | [`mixing-station-config.html`](runbooks/mixing-station-config.html) | Mixing Station app + XR18 configuration reference |
 | [`eq-fx-runbook.html`](runbooks/eq-fx-runbook.html) | EQ and effects settings for the XR18 |
